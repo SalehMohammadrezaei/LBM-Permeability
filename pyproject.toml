@@ -16,6 +16,7 @@ keywords = ["lattice-boltzmann", "permeability", "porous-media", "CFD", "GPU", "
 [project.optional-dependencies]
 gpu = ["cupy-cuda12x>=12"]
 test = ["pytest>=7"]
+viz = ["matplotlib>=3.5", "pyvista>=0.44"]
 
 [tool.setuptools]
 packages = ["lbm_permeability"]

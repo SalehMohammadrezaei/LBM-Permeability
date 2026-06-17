@@ -49,13 +49,15 @@ def _mom_z(f, F_z):
 
 def lbm_stokes_3d(blocked, F_x=1e-6, F_y=0.0, F_z=0.0, tau=1.0,
                   n_steps_max=20000, conv_tol=1e-4, conv_window=500,
-                  use_gpu=True, verbose=True,
+                  use_gpu=True, verbose=True, return_fields=False,
                   heartbeat=500, mempool_flush=2000, wall_timeout_s=7200):
     """Run D3Q19 Stokes flow until ``<|u|>`` converges.
 
     Parameters mirror :func:`lbm_permeability.d2q9.lbm_stokes`.  ``blocked``
     is a ``(Nz, Ny, Nx)`` bool array.  Returns a dict with the superficial
-    velocities ``u_{x,y,z}_mean_total`` plus run metadata.
+    velocities ``u_{x,y,z}_mean_total`` plus run metadata.  Set
+    ``return_fields=True`` to also get the full ``ux``, ``uy``, ``uz`` arrays
+    (NumPy, for visualization) -- off by default to save memory on big volumes.
     """
     xp = cp if (use_gpu and HAS_GPU) else np
     blocked_d = xp.asarray(blocked, dtype=xp.bool_)
@@ -156,6 +158,9 @@ def lbm_stokes_3d(blocked, F_x=1e-6, F_y=0.0, F_z=0.0, tau=1.0,
         "step_converged": converged_step,
         "elapsed_s": time.time() - t0,
     }
+    if return_fields:
+        to_np = (lambda a: cp.asnumpy(a)) if (use_gpu and HAS_GPU) else (lambda a: a)
+        result["ux"], result["uy"], result["uz"] = to_np(ux), to_np(uy), to_np(uz)
     del f, ux, uy, uz, rho, rho_safe, blocked_d
     if mempool is not None:
         mempool.free_all_blocks()

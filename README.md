@@ -20,10 +20,24 @@ binary image  ──►  LBM Stokes flow  ──►  steady-state velocity field
 </p>
 
 <p align="center">
-  <em>Left: a pore-scale geometry (grains vs. pore space). Right: the
+  <em>Left: a 2D pore-scale geometry (grains vs. pore space). Right: the
   steady-state speed field and flow streamlines computed by the solver — most
   of the flux is carried by a few dominant throats. Reproduce with
   <code>python examples/visualize.py</code>.</em>
+</p>
+
+The same solver runs in 3D (D3Q19). Below: a 64³ grain pack and the flow
+streamlines threading through its pore space, colored by speed.
+
+<p align="center">
+  <img src="docs/geometry_3d.png" alt="3D pore-scale grain pack" width="44%">
+  &nbsp;&nbsp;
+  <img src="docs/velocity_3d.png" alt="3D flow streamlines colored by speed" width="44%">
+</p>
+
+<p align="center">
+  <em>3D pore-scale geometry and computed flow field. Reproduce with
+  <code>python examples/visualize_3d.py</code> (needs PyVista).</em>
 </p>
 
 | | |
@@ -169,7 +183,8 @@ lbm_permeability/
 examples/
   run_2d.py      CLI: permeability of a 2D image (or synthetic demo)
   run_3d.py      CLI: permeability of a 3D volume (or synthetic demo)
-  visualize.py   render the geometry + velocity-field figures (docs/)
+  visualize.py     render the 2D geometry + velocity-field figures (docs/)
+  visualize_3d.py  render the 3D grain pack + flow streamlines (docs/, PyVista)
 tests/
   test_poiseuille.py   analytical validation (flat-wall, exact)
 validation/
