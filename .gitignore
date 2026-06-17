@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Data / outputs (don't commit large binaries or results)
+*.npy
+*.raw
+*.vti
+*.bin
+*.png
+*.pdf
+!docs/**/*.png
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

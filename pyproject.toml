@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lbm-permeability"
+version = "0.1.0"
+description = "GPU-accelerated lattice-Boltzmann solver for absolute permeability of pore-scale images"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Saleh Rezaee", email = "salehmrezaee@gmail.com" }]
+requires-python = ">=3.8"
+dependencies = ["numpy>=1.21"]
+keywords = ["lattice-boltzmann", "permeability", "porous-media", "CFD", "GPU", "digital-rock"]
+
+[project.optional-dependencies]
+gpu = ["cupy-cuda12x>=12"]
+test = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["lbm_permeability"]

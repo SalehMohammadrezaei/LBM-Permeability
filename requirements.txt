@@ -1,0 +1,8 @@
+# Core (required)
+numpy>=1.21
+
+# GPU acceleration (optional but strongly recommended for real images).
+# Install the wheel matching your CUDA toolkit, e.g.:
+#   pip install cupy-cuda12x
+# The solver automatically falls back to NumPy/CPU when CuPy is absent.
+# cupy-cuda12x>=12
