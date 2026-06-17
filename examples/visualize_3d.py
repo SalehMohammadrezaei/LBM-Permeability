@@ -91,7 +91,8 @@ def main():
     p.add_mesh(grains, color="#cfcfcf", opacity=0.18, smooth_shading=True)
     if lines.n_points > 0:
         p.add_mesh(lines.tube(radius=0.35), scalars="speed", cmap="magma",
-                   scalar_bar_args=dict(title="speed (LU)", color="black"))
+                   scalar_bar_args=dict(title="velocity magnitude |u| (LU)",
+                                        color="black"))
     p.set_background("white")
     p.add_text(f"3D flow streamlines   k_x = {k_mD:.0f} mD",
                font_size=12, color="black")

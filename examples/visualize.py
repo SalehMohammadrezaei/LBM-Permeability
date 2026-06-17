@@ -72,7 +72,7 @@ def main():
     ax.set_xticks([]); ax.set_yticks([])
     ax.set_xlim(0, nx - 1); ax.set_ylim(0, ny - 1)
     cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.03)
-    cb.set_label("speed (lattice units)", fontsize=9)
+    cb.set_label("velocity magnitude $|u|$ (lattice units)", fontsize=9)
     cb.ax.tick_params(labelsize=8)
     fig.tight_layout()
     fig.savefig(os.path.join(OUT_DIR, "velocity.png"), dpi=160, bbox_inches="tight")
