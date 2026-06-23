@@ -66,6 +66,20 @@ streamlines threading through its pore space, colored by speed.
 | **Validation** | Plane-Poiseuille (2.4 % at a 40-cell aperture, 2nd-order) · Sangani–Acrivos cylinder array (~3 %) |
 | **Dependencies** | NumPy (required) · CuPy (optional, GPU) · Matplotlib/PyVista (figures only) |
 
+### One code path, CPU or GPU
+
+The solver runs identically on NumPy (CPU) or CuPy (GPU) — the backend is chosen
+automatically. Small grids tie (GPU kernel-launch overhead cancels the gain), but
+at the resolutions that matter the GPU dominates — and its time barely grows with
+the grid:
+
+| Grid (1500 steps) | CPU (NumPy) | GPU (RTX 6000 Ada) | speedup |
+|---|---|---|---|
+| 256² | 7 s | 9 s | ~1× |
+| 768² | 171 s | 8 s | **≈21×** |
+
+That is what makes the research-scale 750×750 (2D) and 200³ (3D) runs tractable.
+
 > Developed for a research study of how **CO₂-hydrate formation alters the
 > permeability of porous media**, producing the permeability results behind that
 > work across 2D (750×750) and 3D (200³) pore-scale domains.
