@@ -36,10 +36,11 @@ milliDarcy) by directly simulating creeping flow through the pore network.
 
 ## Results
 
-Run across grain packs of increasing solid fraction, the measured permeability
-collapses onto the classic **Kozeny–Carman** law `k ∝ φ³/(1−φ)²` — permeability
-falls by orders of magnitude as the pores close up, exactly as porous-media
-theory predicts.
+Run across random grain packs of increasing solid fraction, the measured
+permeability follows the classic **Kozeny–Carman** trend `k ∝ φ³/(1−φ)²` —
+permeability falls by orders of magnitude as the pores close up. The scatter
+about the curve is real: each point is a different random packing, not an
+idealized medium.
 
 <p align="center">
   <img src="docs/permeability_vs_porosity.png" alt="Permeability vs porosity vs Kozeny–Carman" width="62%">
@@ -63,7 +64,7 @@ streamlines threading through its pore space, colored by speed.
 |---|---|
 | **Method** | Single-phase Stokes flow · D2Q9 (2D) / D3Q19 (3D) · BGK collision · Guo body force |
 | **Backend** | CuPy on GPU, automatic NumPy/CPU fallback — *same code path* |
-| **Validation** | Plane-Poiseuille (2.4 % at a 40-cell aperture, 2nd-order) · Sangani–Acrivos cylinder array (~3 %) |
+| **Validation** | Plane-Poiseuille (2.4 % at a 40-cell aperture, error halving with resolution) · Sangani–Acrivos cylinder array (~3 %) |
 | **Dependencies** | NumPy (required) · CuPy (optional, GPU) · Matplotlib/PyVista (figures only) |
 
 ### One code path, CPU or GPU
@@ -169,8 +170,9 @@ Checked against two analytical references with closed-form permeability.
 
 **1. Plane-Poiseuille flow** (flat walls, exact). Flow between parallel plates
 has superficial permeability `k = (a²/12)·(gap/Ny)` with effective aperture
-`a = gap + 1` for half-way bounce-back. The discrete result converges to the
-analytical value at **second order** as the channel is refined:
+`a = gap + 1` for half-way bounce-back. The discrete result approaches the
+analytical value as the channel is refined — the error roughly **halves with
+each doubling** of the aperture:
 
 | Aperture (cells) | 10 | 20 | 40 |
 |---|---|---|---|

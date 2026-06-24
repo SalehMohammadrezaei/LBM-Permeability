@@ -36,7 +36,7 @@ def test_poiseuille_accuracy():
 
 
 def test_poiseuille_convergence():
-    """Error must shrink as the channel is refined (2nd-order LBM)."""
+    """Error must shrink as the channel is refined (it roughly halves per doubling)."""
     errs = []
     for gap, Ny in [(10, 50), (20, 60), (40, 80)]:
         k, k_exact = _measure(gap, Ny)

@@ -23,14 +23,14 @@ from lbm_permeability import (
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs")
 DX = 2.0e-6
-N = 150
+N = 320
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     phis, ks = [], []
-    for nd in (22, 34, 46, 60, 76, 94):                       # more grains -> lower porosity
-        blocked = geometry.random_disks(N, N, n_disks=nd, radius=14, seed=100 + nd)
+    for nd in (26, 40, 56, 74, 94, 116, 142):                       # more grains -> lower porosity
+        blocked = geometry.random_disks(N, N, n_disks=nd, radius=20, seed=100 + nd)
         phi = geometry.porosity(blocked)
         res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=30000,
                          conv_tol=1e-5, conv_window=300, use_gpu=HAS_GPU, verbose=False)
@@ -57,7 +57,7 @@ def main():
     ax.grid(True, which="both", alpha=0.25)
     ax.legend(frameon=False, loc="upper left")
     fig.tight_layout()
-    fig.savefig(os.path.join(OUT, "permeability_vs_porosity.png"), dpi=160, bbox_inches="tight")
+    fig.savefig(os.path.join(OUT, "permeability_vs_porosity.png"), dpi=200, bbox_inches="tight")
     print(f"wrote {OUT}/permeability_vs_porosity.png")
 
 

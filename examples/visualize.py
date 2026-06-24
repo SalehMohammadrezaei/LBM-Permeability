@@ -30,11 +30,11 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
     # A synthetic grain pack — reproducible, no external data needed.
-    blocked = geometry.random_disks(240, 240, n_disks=55, radius=17, seed=3)
+    blocked = geometry.random_disks(460, 460, n_disks=120, radius=26, seed=3)
     phi = geometry.porosity(blocked)
     print(f"porosity = {phi:.3f}   backend = {'GPU' if HAS_GPU else 'CPU'}")
 
-    res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=80000,
+    res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=150000,
                      conv_tol=1e-6, conv_window=500, use_gpu=HAS_GPU, verbose=False)
     ux, uy = res["ux"], res["uy"]
     speed = np.sqrt(ux ** 2 + uy ** 2)
@@ -51,7 +51,7 @@ def main():
     ax.set_title(f"Pore-scale geometry\n$\\phi$ = {phi:.2f} (pore fraction)", fontsize=11)
     ax.set_xticks([]); ax.set_yticks([])
     fig.tight_layout()
-    fig.savefig(os.path.join(OUT_DIR, "geometry.png"), dpi=160, bbox_inches="tight")
+    fig.savefig(os.path.join(OUT_DIR, "geometry.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
     # --- Figure 2: velocity magnitude + streamlines ---
@@ -75,7 +75,7 @@ def main():
     cb.set_label("velocity magnitude $|u|$ (lattice units)", fontsize=9)
     cb.ax.tick_params(labelsize=8)
     fig.tight_layout()
-    fig.savefig(os.path.join(OUT_DIR, "velocity.png"), dpi=160, bbox_inches="tight")
+    fig.savefig(os.path.join(OUT_DIR, "velocity.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
     print(f"wrote {OUT_DIR}/geometry.png and {OUT_DIR}/velocity.png")
