@@ -85,6 +85,26 @@ That is what makes the research-scale 750×750 (2D) and 200³ (3D) runs tractabl
 > permeability of porous media**, producing the permeability results behind that
 > work across 2D (750×750) and 3D (200³) pore-scale domains.
 
+### Fused CUDA kernel for 3D
+
+3D volumes run through a **fused collide/stream CUDA kernel** (`d3q19_fast`) rather
+than array operations. It does the whole step in two custom kernels — one read +
+one write of the distribution array each — instead of ~40 separate elementwise
+ops, so it actually uses the GPU's memory bandwidth. Same numerics (it matches the
+readable array solver to machine precision), **~10× faster**, with a `float32`
+option that halves the memory:
+
+| 400³ · D3Q19 · RTX 6000 Ada | per step | peak memory |
+|---|---|---|
+| array reference | ~975 ms | ~19 GB |
+| fused kernel · float64 | ~96 ms | ~25 GB |
+| fused kernel · float32 | ~83 ms | ~13 GB |
+
+A converged 400³ permeability run therefore drops from hours to roughly **10–30
+minutes**. The kernel is on by default on GPU (`use_kernel=True`); pass
+`precision="float32"` for the lowest memory, or `use_kernel=False` for the
+readable pure-array path.
+
 ---
 
 ## The physics
@@ -225,9 +245,11 @@ validation/
 
 - Computes **single-phase absolute permeability**. Multiphase / relative
   permeability is a separate problem.
-- 3D runs are heavy: a 200³ volume is minutes-per-1000-steps on a GPU and
-  impractical on CPU. The 3D solver includes a heartbeat, periodic GPU
-  memory-pool flushing, and a wall-clock safety timeout for long jobs.
+- 3D is GPU territory: the fused kernel does a 400³ step in ~0.1 s, so a converged
+  run is ~10–30 min (use `precision="float32"` to halve the memory). The pure-array
+  path (`use_kernel=False`) and CPU fallback also exist for portability/clarity, and
+  the solver keeps a heartbeat, periodic memory-pool flushing, and a wall-clock
+  safety timeout for long jobs.
 - Body force, relaxation time `tau`, and tolerance are kept low enough to stay
   in the Stokes (creeping-flow) regime where Darcy's law applies.
 

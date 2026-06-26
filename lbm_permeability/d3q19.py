@@ -50,7 +50,8 @@ def _mom_z(f, F_z):
 def lbm_stokes_3d(blocked, F_x=1e-6, F_y=0.0, F_z=0.0, tau=1.0,
                   n_steps_max=20000, conv_tol=1e-4, conv_window=500,
                   use_gpu=True, verbose=True, return_fields=False,
-                  heartbeat=500, mempool_flush=2000, wall_timeout_s=7200):
+                  heartbeat=500, mempool_flush=2000, wall_timeout_s=7200,
+                  use_kernel=True, precision="float64"):
     """Run D3Q19 Stokes flow until ``<|u|>`` converges.
 
     Parameters mirror :func:`lbm_permeability.d2q9.lbm_stokes`.  ``blocked``
@@ -58,7 +59,21 @@ def lbm_stokes_3d(blocked, F_x=1e-6, F_y=0.0, F_z=0.0, tau=1.0,
     velocities ``u_{x,y,z}_mean_total`` plus run metadata.  Set
     ``return_fields=True`` to also get the full ``ux``, ``uy``, ``uz`` arrays
     (NumPy, for visualization) -- off by default to save memory on big volumes.
+
+    On a GPU the default ``use_kernel=True`` runs a fused collide/stream CUDA
+    kernel (see :mod:`d3q19_fast`) — same numerics, ~10x faster.  ``precision``
+    may be ``"float64"`` (default, matches this array path bit-for-bit) or
+    ``"float32"`` (half the memory, faster, ~1e-3 accuracy).  Set
+    ``use_kernel=False`` to force this readable array implementation.
     """
+    if use_kernel and use_gpu and HAS_GPU:
+        from .d3q19_fast import lbm_stokes_3d_fast
+        return lbm_stokes_3d_fast(
+            blocked, F_x=F_x, F_y=F_y, F_z=F_z, tau=tau, n_steps_max=n_steps_max,
+            conv_tol=conv_tol, conv_window=conv_window, precision=precision,
+            verbose=verbose, return_fields=return_fields, heartbeat=heartbeat,
+            wall_timeout_s=wall_timeout_s)
+
     xp = cp if (use_gpu and HAS_GPU) else np
     blocked_d = xp.asarray(blocked, dtype=xp.bool_)
     mempool = cp.get_default_memory_pool() if (use_gpu and HAS_GPU) else None
