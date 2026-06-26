@@ -100,8 +100,9 @@ option that halves the memory:
 | fused kernel · float64 | ~96 ms | ~25 GB |
 | fused kernel · float32 | ~83 ms | ~13 GB |
 
-A converged 400³ permeability run therefore drops from hours to roughly **10–30
-minutes**. The kernel is on by default on GPU (`use_kernel=True`); pass
+A converged 400³ permeability run therefore drops from hours to roughly **10–20
+minutes** (often less for open, high-porosity samples). The kernel is on by
+default on GPU (`use_kernel=True`); pass
 `precision="float32"` for the lowest memory, or `use_kernel=False` for the
 readable pure-array path.
 
@@ -245,8 +246,8 @@ validation/
 
 - Computes **single-phase absolute permeability**. Multiphase / relative
   permeability is a separate problem.
-- 3D is GPU territory: the fused kernel does a 400³ step in ~0.1 s, so a converged
-  run is ~10–30 min (use `precision="float32"` to halve the memory). The pure-array
+- 3D is GPU territory: the fused kernel does a 400³ step in ~0.08–0.1 s, so a
+  converged run is ~10–20 min (use `precision="float32"` to halve the memory). The pure-array
   path (`use_kernel=False`) and CPU fallback also exist for portability/clarity, and
   the solver keeps a heartbeat, periodic memory-pool flushing, and a wall-clock
   safety timeout for long jobs.
