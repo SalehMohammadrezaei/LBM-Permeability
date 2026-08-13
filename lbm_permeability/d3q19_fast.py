@@ -72,7 +72,8 @@ void collide(const {real}* __restrict__ f, {real}* __restrict__ fo,
         double cF = CXc[q]*Fx + CYc[q]*Fy + CZc[q]*Fz;
         double feq = Wc[q]*rho*(1.0 + 3.0*cu + 4.5*cu*cu - 1.5*u2);
         double S   = Wc[q]*hit*(3.0*cF + 9.0*cu*cF - 3.0*uF);
-        fo[(long)q * N + i] = ({real})(fq[q] - (fq[q]-feq)/tau + S);
+        // collide fluid nodes ONLY — colliding solids corrupts the bounce-back (wall slip)
+        fo[(long)q * N + i] = solid[i] ? ({real})fq[q] : ({real})(fq[q] - (fq[q]-feq)/tau + S);
     }}
 }}
 

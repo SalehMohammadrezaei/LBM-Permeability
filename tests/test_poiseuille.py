@@ -3,11 +3,14 @@
 Body-force-driven flow between parallel plates has the exact superficial
 (Darcy) permeability
 
-    k = (a**2 / 12) * (gap / Ny)        [cells^2]
+    k = (gap**3 / 12) * (1 / Ny)        [cells^2]
 
-with effective aperture ``a = gap + 1`` for half-way bounce-back.  The
-discrete LBM result converges to this value as the channel is refined, which
-is exactly what these tests assert.
+where ``gap`` is the number of fluid rows.  For a correct half-way bounce-back
+the no-slip walls sit exactly half a lattice spacing outside the last fluid
+node, so the *effective* aperture equals ``gap`` (not ``gap + 1``).  The
+discrete LBM result converges to this value at **second order** in the
+resolution (the residual is the tau-dependent BGK-bounce-back slip, smallest
+at tau = 1), which is what these tests assert.
 """
 import os
 import sys
@@ -23,25 +26,26 @@ def _measure(gap, Ny):
     res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=80000,
                      conv_tol=1e-8, conv_window=200, use_gpu=False, verbose=False)
     k = k_from_run(res, "x")
-    a = gap + 1  # effective aperture, half-way bounce-back
-    k_exact = (a * a / 12.0) * (gap / Ny)
+    k_exact = (gap ** 3 / 12.0) / Ny   # effective aperture = gap (half-way bounce-back)
     return k, k_exact
 
 
 def test_poiseuille_accuracy():
-    """At a well-resolved aperture the error is a few percent."""
+    """At a well-resolved aperture the error is well under 1%."""
     k, k_exact = _measure(gap=40, Ny=80)
     rel_err = abs(k - k_exact) / k_exact
-    assert rel_err < 0.05, f"relative error {rel_err:.3%} too large"
+    assert rel_err < 0.005, f"relative error {rel_err:.3%} too large"
 
 
 def test_poiseuille_convergence():
-    """Error must shrink as the channel is refined (it roughly halves per doubling)."""
+    """Error must shrink ~4x per doubling (second-order) as the channel is refined."""
     errs = []
     for gap, Ny in [(10, 50), (20, 60), (40, 80)]:
         k, k_exact = _measure(gap, Ny)
         errs.append(abs(k - k_exact) / k_exact)
     assert errs[0] > errs[1] > errs[2], f"not converging: {errs}"
+    # second-order: each refinement should cut the error by clearly more than 2x
+    assert errs[0] / errs[1] > 2.5 and errs[1] / errs[2] > 2.5, f"not second-order: {errs}"
 
 
 if __name__ == "__main__":

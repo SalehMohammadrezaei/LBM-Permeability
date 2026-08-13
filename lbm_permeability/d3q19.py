@@ -90,6 +90,7 @@ def lbm_stokes_3d(blocked, F_x=1e-6, F_y=0.0, F_z=0.0, tau=1.0,
     cy = xp.asarray(CY, dtype=xp.float64)
     cz = xp.asarray(CZ, dtype=xp.float64)
     w = xp.asarray(W, dtype=xp.float64)
+    fluid_f = (~blocked_d).astype(xp.float64)   # collide fluid ONLY (see d2q9)
 
     u_hist = []
     t0 = time.time()
@@ -112,7 +113,7 @@ def lbm_stokes_3d(blocked, F_x=1e-6, F_y=0.0, F_z=0.0, tau=1.0,
             cF = cx[q] * F_x + cy[q] * F_y + cz[q] * F_z
             feq = w[q] * rho * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * u2)
             S = w[q] * half_inv_tau * (3.0 * cF + 9.0 * cu * cF - 3.0 * uF)
-            f[q] += -(f[q] - feq) / tau + S
+            f[q] += (-(f[q] - feq) / tau + S) * fluid_f       # fluid nodes only
         del u2, uF
 
         # --- streaming (periodic) ---

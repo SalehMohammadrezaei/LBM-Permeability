@@ -78,6 +78,8 @@ def lbm_stokes(blocked, F_x=0.0, F_y=0.0, tau=1.0,
     cx = xp.asarray(CX, dtype=xp.float64)
     cy = xp.asarray(CY, dtype=xp.float64)
     w = xp.asarray(W, dtype=xp.float64)
+    fluid_f = (~blocked_d).astype(xp.float64)   # collide fluid ONLY: colliding solids
+    #                                             corrupts the bounce-back and adds wall slip
 
     u_hist = []
     t0 = time.time()
@@ -104,8 +106,8 @@ def lbm_stokes(blocked, F_x=0.0, F_y=0.0, tau=1.0,
             feq[q] = w[q] * rho * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * u2)
             S[q] = w[q] * half_inv_tau * (3.0 * cF + 9.0 * cu * cF - 3.0 * uF)
 
-        # --- BGK collision + body force ---
-        f += -(f - feq) / tau + S
+        # --- BGK collision + body force (fluid nodes only) ---
+        f += (-(f - feq) / tau + S) * fluid_f
 
         # --- streaming (periodic via roll) ---
         for q in range(9):
