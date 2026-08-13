@@ -23,18 +23,25 @@ from lbm_permeability import (
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs")
 DX = 2.0e-6
-N = 320
+N = 300
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     phis, ks = [], []
-    for nd in (26, 40, 56, 74, 94, 116, 142):                       # more grains -> lower porosity
-        blocked = geometry.random_disks(N, N, n_disks=nd, radius=20, seed=100 + nd)
+    # More grains -> lower porosity. Kept to the range where the pore space still
+    # percolates under correct no-slip physics; denser packs pinch off (with the
+    # earlier wall-slip bug they leaked flow through near-closed throats and gave
+    # spuriously non-zero k). Packs that don't converge or pinch off are dropped.
+    for nd in (16, 20, 24, 28, 32, 36, 40):
+        blocked = geometry.random_disks(N, N, n_disks=nd, radius=22, seed=100 + nd)
         phi = geometry.porosity(blocked)
-        res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=30000,
-                         conv_tol=1e-5, conv_window=300, use_gpu=HAS_GPU, verbose=False)
+        res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=60000,
+                         conv_tol=1e-4, conv_window=400, use_gpu=HAS_GPU, verbose=False)
         k_mD = k_m2_to_millidarcy(k_lu_to_m2(k_from_run(res, "x"), DX))
+        if res["step_converged"] >= 60000 or k_mD < 5:
+            print(f"φ={phi:.3f}  k={k_mD:9.1f} mD  (dropped)", flush=True)
+            continue
         phis.append(phi); ks.append(k_mD)
         print(f"φ={phi:.3f}  k={k_mD:9.1f} mD  (step {res['step_converged']})", flush=True)
     phis = np.array(phis); ks = np.array(ks)

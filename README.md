@@ -37,10 +37,11 @@ milliDarcy) by directly simulating creeping flow through the pore network.
 ## Results
 
 Run across random grain packs of increasing solid fraction, the measured
-permeability follows the classic **Kozeny–Carman** trend `k ∝ φ³/(1−φ)²` —
-permeability falls by orders of magnitude as the pores close up. The scatter
-about the curve is real: each point is a different random packing, not an
-idealized medium.
+permeability tracks the classic **Kozeny–Carman** trend `k ∝ φ³/(1−φ)²` —
+permeability drops steeply as the pores close up. The scatter about the curve is
+real: each point is a single random packing, and one dominant throat can swing
+`k` by a factor of a few, so the points straddle the fitted trend rather than
+sitting on it.
 
 <p align="center">
   <img src="docs/permeability_vs_porosity.png" alt="Permeability vs porosity vs Kozeny–Carman" width="62%">
@@ -64,7 +65,7 @@ streamlines threading through its pore space, colored by speed.
 |---|---|
 | **Method** | Single-phase Stokes flow · D2Q9 (2D) / D3Q19 (3D) · BGK collision · Guo body force |
 | **Backend** | CuPy on GPU, automatic NumPy/CPU fallback — *same code path* |
-| **Validation** | Plane-Poiseuille (2.4 % at a 40-cell aperture, error halving with resolution) · Sangani–Acrivos cylinder array (~3 %) |
+| **Validation** | Plane-Poiseuille (0.06 % at a 40-cell aperture, second-order convergence) · Sangani–Acrivos cylinder array (~1 % at dilute solid fraction) |
 | **Dependencies** | NumPy (required) · CuPy (optional, GPU) · Matplotlib/PyVista (figures only) |
 
 ### One code path, CPU or GPU
@@ -192,14 +193,15 @@ print(k_m2_to_millidarcy(k_m2), "mD")
 Checked against two analytical references with closed-form permeability.
 
 **1. Plane-Poiseuille flow** (flat walls, exact). Flow between parallel plates
-has superficial permeability `k = (a²/12)·(gap/Ny)` with effective aperture
-`a = gap + 1` for half-way bounce-back. The discrete result approaches the
-analytical value as the channel is refined — the error roughly **halves with
-each doubling** of the aperture:
+has superficial permeability `k = gap³/(12·Ny)`, where `gap` is the number of
+fluid rows. For a correct half-way bounce-back the no-slip walls sit exactly
+half a cell outside the last fluid node, so the *effective* aperture equals
+`gap`. The discrete result converges to this at **second order** — the error
+**quarters with each doubling** of the aperture:
 
 | Aperture (cells) | 10 | 20 | 40 |
 |---|---|---|---|
-| **Relative error** | 9.1 % | 4.8 % | 2.4 % |
+| **Relative error** | 1.0 % | 0.25 % | 0.06 % |
 
 ```bash
 python tests/test_poiseuille.py     # runs with or without pytest
@@ -208,17 +210,19 @@ python tests/test_poiseuille.py     # runs with or without pytest
 **2. Square array of cylinders** (curved boundaries). Transverse Stokes flow
 through a periodic cylinder array at solid fraction `c` has the Sangani &
 Acrivos (1982) permeability `k/a² = (1/8c)[−ln c − 1.476 + 2c − 1.774c² +
-4.076c³]`. Run to true steady state, the solver matches it to **~3 %** where
-that asymptotic series is valid:
+4.076c³]`. Run to true steady state, the solver matches it to **~1–2 %** in the
+dilute-to-moderate range where that asymptotic series is valid:
 
 | Solid fraction c | 0.10 | 0.15 | 0.20 | 0.30 |
 |---|---|---|---|---|
-| **k/a² (LBM)** | 1.293 | 0.589 | 0.320 | 0.106 |
+| **k/a² (LBM)** | 1.248 | 0.566 | 0.306 | 0.101 |
 | **k/a² (Sangani–Acrivos)** | 1.257 | 0.573 | 0.312 | 0.116 |
-| **error** | 2.9 % | 2.8 % | 2.5 % | 8.2 % |
+| **error** | 0.7 % | 1.2 % | 1.9 % | 13 % |
 
-The `c = 0.30` point widens because the reference is a *dilute* expansion that
-loses accuracy at high solid fraction — not a solver error.
+The `c = 0.30` point deviates most because the reference is a *dilute* expansion
+that loses accuracy at high solid fraction (and the discrete cylinder staircases
+its curved boundary) — not a solver error; the dilute points where the benchmark
+is trustworthy agree to ~1 %.
 
 ```bash
 python validation/cylinder_array.py    # GPU recommended

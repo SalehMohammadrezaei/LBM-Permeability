@@ -29,13 +29,15 @@ DX = 2.0e-6  # physical cell size (m)
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
 
-    # A synthetic grain pack — reproducible, no external data needed.
-    blocked = geometry.random_disks(460, 460, n_disks=120, radius=26, seed=3)
+    # A synthetic grain pack — reproducible, no external data needed. An open
+    # pack (phi ~ 0.6) that percolates cleanly, so the flow field is well
+    # developed and the dominant throats stand out.
+    blocked = geometry.random_disks(340, 340, n_disks=30, radius=24, seed=2)
     phi = geometry.porosity(blocked)
     print(f"porosity = {phi:.3f}   backend = {'GPU' if HAS_GPU else 'CPU'}")
 
-    res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=150000,
-                     conv_tol=1e-6, conv_window=500, use_gpu=HAS_GPU, verbose=False)
+    res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=60000,
+                     conv_tol=1e-4, conv_window=500, use_gpu=HAS_GPU, verbose=False)
     ux, uy = res["ux"], res["uy"]
     speed = np.sqrt(ux ** 2 + uy ** 2)
     speed_masked = np.ma.masked_where(blocked, speed)
@@ -59,14 +61,22 @@ def main():
     speed_cmap = matplotlib.colormaps["magma"].copy()
     speed_cmap.set_bad("#c2c2c2")        # solid grains -> neutral gray
     im = ax.imshow(speed_masked, cmap=speed_cmap, origin="lower",
-                   interpolation="bilinear")
+                   interpolation="bilinear", zorder=1)
     ny, nx = speed.shape
     Y, X = np.mgrid[0:ny, 0:nx]
-    # mask velocity inside grains so streamlines don't cross them
+    # mask velocity inside grains so the integrator can't cross them
     ux_p = np.where(blocked, np.nan, ux)
     uy_p = np.where(blocked, np.nan, uy)
     ax.streamplot(X, Y, ux_p, uy_p, color="white", density=1.1,
-                  linewidth=0.6, arrowsize=0.7)
+                  linewidth=0.6, arrowsize=0.7, zorder=2)
+    # Re-draw the grains as an OPAQUE layer on top of the streamlines. streamplot
+    # bilinearly interpolates across the masked (NaN) grain cells and seeds lines
+    # on its own grid, so near a boundary it renders short segments that appear to
+    # emerge from a grain. The flow itself does not (u = 0 inside solids, and the
+    # field is divergence-free) -- this simply hides that rendering artifact.
+    grain_layer = np.ma.masked_where(~blocked, np.ones_like(speed))
+    ax.imshow(grain_layer, cmap=ListedColormap(["#c2c2c2"]), origin="lower",
+              interpolation="nearest", zorder=3)
     ax.set_title(f"Steady-state flow  |u|\n"
                  f"$k_x$ = {k_mD:.0f} mD  (flow $\\rightarrow$)", fontsize=11)
     ax.set_xticks([]); ax.set_yticks([])
