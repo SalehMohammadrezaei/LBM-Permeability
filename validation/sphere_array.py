@@ -1,6 +1,5 @@
-"""Validate the 3D solver against the canonical porous-medium benchmark that
-Palabos (and Palabos-based codes such as MPLBM-UT) validate their permeability
-against: slow flow through a **simple-cubic array of spheres**.
+"""Validate the 3D solver against the canonical porous-medium benchmark for
+pore-scale LBM codes: slow flow through a **simple-cubic array of spheres**.
 
 A single solid sphere (radius ``a``) centred in a periodic cubic cell of side
 ``L`` is a simple-cubic lattice of spheres at solid fraction ``c = (4/3)pi a^3 / L^3``.
@@ -13,8 +12,7 @@ Acrivos 1982):
 
 This is the 3D counterpart of ``cylinder_array.py`` (2D, Sangani-Acrivos
 cylinders). We build the sphere, drive periodic body-force flow, measure k with
-the LBM solver, and compare k/a^2 to the series. Palabos matches this same
-reference, so agreement here is an apples-to-apples cross-code check.
+the LBM solver, and compare k/a^2 to the series.
 
 Reference: A.S. Sangani & A. Acrivos, "Slow flow through a periodic array of
 spheres", Int. J. Multiphase Flow 8 (1982) 343-360; H. Hasimoto, J. Fluid Mech.
@@ -65,7 +63,7 @@ def run_case(L, a, n_steps_max=80000, conv_tol=1e-4):
 
 
 def main(cases=((48, 11), (41, 11), (37, 11))):
-    print(f"Simple-cubic sphere array (Palabos benchmark), backend={'GPU' if HAS_GPU else 'CPU'}")
+    print(f"Simple-cubic sphere array benchmark, backend={'GPU' if HAS_GPU else 'CPU'}")
     print(f"{'L':>4} {'a_eff':>6} {'c':>7} {'k/a^2 LBM':>11} {'k/a^2 S&A':>11} {'rel.err':>8} {'conv@':>7}")
     print("-" * 60)
     for L, a in cases:

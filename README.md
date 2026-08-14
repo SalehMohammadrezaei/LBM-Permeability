@@ -109,6 +109,23 @@ default on GPU (`use_kernel=True`); pass
 `precision="float32"` for the lowest memory, or `use_kernel=False` for the
 readable pure-array path.
 
+### Fast 2D kernel and a pressure-driven driver
+
+The 2D path has the same treatment: a **fused D2Q9 collide/stream kernel**
+(`lbm_stokes_2d_fast`, ~10× faster than the readable `roll`-based solver) that
+converges on the change in **permeability** rather than the raw velocity field —
+the right criterion for media with large stagnant/dead-end pore volume.
+
+There is also a **pressure-driven solver** (`lbm_stokes_2d_pressure`) that drives
+the flow with a fixed inlet/outlet pressure difference (Zou & He boundary
+conditions, lateral periodic) instead of a periodic body force, and reads the
+permeability from the measured pressure gradient across the sample. It is
+validated against the exact Poiseuille result (0.26 %) and agrees with the
+body-force solver on random packs to ~1–2 % (`validation/pressure_vs_bodyforce.py`).
+On long, elongated samples it sits closer to steady state at a given step count;
+for either driver the approach to steady state scales with `L²/ν`, so very long
+domains benefit from extrapolating the permeability history to steady state.
+
 ---
 
 ## The physics
@@ -228,11 +245,11 @@ is trustworthy agree to ~1 %.
 python validation/cylinder_array.py    # GPU recommended
 ```
 
-**3. Simple-cubic array of spheres** (3D — the cross-code benchmark). This is the
-canonical porous-medium test that [Palabos](https://palabos.unige.ch) and
-Palabos-based permeability codes validate against. A single sphere (radius `a`)
-in a periodic cubic cell is a simple-cubic sphere lattice at solid fraction `c`,
-with the Hasimoto (1959) / Sangani–Acrivos (1982) permeability
+**3. Simple-cubic array of spheres** (3D). This is the canonical 3D porous-medium
+permeability benchmark, and the standard cross-check for pore-scale LBM codes. A
+single sphere (radius `a`) in a periodic cubic cell is a simple-cubic sphere
+lattice at solid fraction `c`, with the Hasimoto (1959) / Sangani–Acrivos (1982)
+permeability
 `k/a² = 2/(9c·K)`, where `1/K = 1 − 1.7601c^{1/3} + c − 1.5593c² + …`. The solver
 reproduces it to **~1 %** (radius = 11 cells; the small residual is the
 sphere-staircase + bounce-back error, which shrinks with resolution):
@@ -243,10 +260,6 @@ sphere-staircase + bounce-back error, which shrinks with resolution):
 | **k/a² (Sangani–Acrivos)** | 1.734 | 0.862 | 0.519 |
 | **error** | 0.9 % | 1.0 % | 1.2 % |
 
-Palabos defines permeability identically (`k = ν⟨u⟩/(dP/dx)`, BGK) and matches
-this same reference, so agreement here is a direct apples-to-apples cross-check
-against Palabos.
-
 ```bash
 python validation/sphere_array.py      # 3D; GPU recommended, runs on CPU too
 ```
@@ -255,10 +268,13 @@ python validation/sphere_array.py      # 3D; GPU recommended, runs on CPU too
 
 ```
 lbm_permeability/
-  d2q9.py        2D D2Q9 Stokes solver
-  d3q19.py       3D D3Q19 Stokes solver (heartbeat, memory-pool mgmt, timeout)
-  units.py       lattice-unit ↔ m² ↔ milliDarcy conversions + Darcy's law
-  geometry.py    synthetic test geometries (channel, disk/sphere packs)
+  d2q9.py          2D D2Q9 Stokes solver (readable array reference)
+  d2q9_fast.py     2D fused collide/stream CUDA kernel (k-based convergence)
+  d2q9_pressure.py 2D pressure-driven solver (Zou-He inlet/outlet BCs)
+  d3q19.py         3D D3Q19 Stokes solver (heartbeat, memory-pool mgmt, timeout)
+  d3q19_fast.py    3D fused collide/stream CUDA kernel
+  units.py         lattice-unit ↔ m² ↔ milliDarcy conversions + Darcy's law
+  geometry.py      synthetic test geometries (channel, disk/sphere packs)
 examples/
   run_2d.py              CLI: permeability of a 2D image (or synthetic demo)
   run_3d.py              CLI: permeability of a 3D volume (or synthetic demo)
@@ -268,8 +284,9 @@ examples/
 tests/
   test_poiseuille.py     analytical validation (flat-wall, exact)
 validation/
-  cylinder_array.py      2D benchmark vs. Sangani–Acrivos cylinder-array theory
-  sphere_array.py        3D benchmark vs. Sangani–Acrivos sphere array (Palabos target)
+  cylinder_array.py        2D benchmark vs. Sangani–Acrivos cylinder-array theory
+  sphere_array.py          3D benchmark vs. Sangani–Acrivos sphere array
+  pressure_vs_bodyforce.py pressure-driven vs body-force cross-check + Poiseuille
 ```
 
 ## Notes & scope
