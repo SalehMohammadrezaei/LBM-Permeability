@@ -228,6 +228,29 @@ is trustworthy agree to ~1 %.
 python validation/cylinder_array.py    # GPU recommended
 ```
 
+**3. Simple-cubic array of spheres** (3D — the cross-code benchmark). This is the
+canonical porous-medium test that [Palabos](https://palabos.unige.ch) and
+Palabos-based permeability codes validate against. A single sphere (radius `a`)
+in a periodic cubic cell is a simple-cubic sphere lattice at solid fraction `c`,
+with the Hasimoto (1959) / Sangani–Acrivos (1982) permeability
+`k/a² = 2/(9c·K)`, where `1/K = 1 − 1.7601c^{1/3} + c − 1.5593c² + …`. The solver
+reproduces it to **~1 %** (radius = 11 cells; the small residual is the
+sphere-staircase + bounce-back error, which shrinks with resolution):
+
+| Solid fraction c | 0.051 | 0.081 | 0.110 |
+|---|---|---|---|
+| **k/a² (LBM)** | 1.719 | 0.853 | 0.513 |
+| **k/a² (Sangani–Acrivos)** | 1.734 | 0.862 | 0.519 |
+| **error** | 0.9 % | 1.0 % | 1.2 % |
+
+Palabos defines permeability identically (`k = ν⟨u⟩/(dP/dx)`, BGK) and matches
+this same reference, so agreement here is a direct apples-to-apples cross-check
+against Palabos.
+
+```bash
+python validation/sphere_array.py      # 3D; GPU recommended, runs on CPU too
+```
+
 ## Repository layout
 
 ```
@@ -245,7 +268,8 @@ examples/
 tests/
   test_poiseuille.py     analytical validation (flat-wall, exact)
 validation/
-  cylinder_array.py      benchmark vs. Sangani–Acrivos cylinder-array theory
+  cylinder_array.py      2D benchmark vs. Sangani–Acrivos cylinder-array theory
+  sphere_array.py        3D benchmark vs. Sangani–Acrivos sphere array (Palabos target)
 ```
 
 ## Notes & scope
