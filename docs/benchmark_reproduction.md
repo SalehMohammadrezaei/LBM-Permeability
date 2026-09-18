@@ -48,6 +48,17 @@ These are not claimed to be exact per-case physical-device peaks. Clear unused
 pool blocks only for this process between cases. Timings synchronize execution;
 setup, solve with diagnostics, export, and full tensor costs are distinguished.
 
+Git and process RSS measurement are optional host capabilities. When Git is
+missing, fails, or times out, exported `commit` and `working_tree_status` are
+null and `git_provenance_status` explains why; result and CLI error exports still
+work. The shared memory helper reports process-lifetime high-water RSS in bytes
+(Linux KiB converted to bytes; macOS already bytes). Unsupported platforms or
+unavailable measurements report null with an explicit status and explanation,
+never a fabricated zero or per-case peak. GPU pool measurements remain separate.
+The packaging follow-up tests cover these failures without changing equations,
+convergence settings, or the archived rock campaign. Historical source hashes
+continue to identify their original package versions.
+
 ## Additional executed tools
 
 ```bash

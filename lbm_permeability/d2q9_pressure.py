@@ -5,7 +5,7 @@ measured positive pressure-drop gradient. Artificial reservoirs and optional
 outer wall rows are excluded from the original sample averaging volume.
 """
 import time
-import resource
+from .memory import process_memory_report
 import numpy as np
 from .backends import cp, select
 from . import validation as v
@@ -158,6 +158,7 @@ def lbm_stokes_2d_pressure(blocked, deltaP=1e-4, tau=1., pad=4, walls_y=False,
         out.update(ux=cp.asnumpy(fields[0][roi]),uy=cp.asnumpy(fields[1][roi]),rho=cp.asnumpy(rho[roi]))
     out.update(elapsed_s=time.perf_counter()-started,
                timing=dict(setup_s=setup_s,final_diagnostics_s=final_diagnostics_s,solve_and_diagnostics_s=solve_s,export_s=time.perf_counter()-export_start),
-               memory=dict(process_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
-                           gpu_pool_reserved_peak_sampled_bytes=max(peak_pool,cp.get_default_memory_pool().total_bytes())))
+               memory=dict(**process_memory_report(),
+                           gpu_pool_reserved_peak_sampled_bytes=max(peak_pool,cp.get_default_memory_pool().total_bytes()),
+                           note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache'))
     return out

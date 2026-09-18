@@ -1,10 +1,10 @@
 """Shared periodic solver lifecycle; original BGK/Guo and solid-node reflection."""
 import time
-import resource
 import numpy as np
 from . import validation as v
 from .backends import select, cp
 from .diagnostics import Monitor
+from .memory import process_memory_report
 
 
 def lattice(ndim):
@@ -171,7 +171,7 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
         peak_pool=max(peak_pool,xp.get_default_memory_pool().total_bytes())
     base.update(elapsed_s=time.perf_counter()-started,
                 timing=dict(setup_s=setup_s,initial_diagnostics_s=initial_diagnostics_s,final_diagnostics_s=final_diagnostics_s,solve_and_diagnostics_s=solve_s,loop_note='iteration loop includes scheduled checks; initial/final checks reported separately',export_s=time.perf_counter()-export_start),
-                memory=dict(process_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
+                memory=dict(**process_memory_report(),
                             gpu_pool_reserved_peak_sampled_bytes=peak_pool,
                             note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache'))
     return base

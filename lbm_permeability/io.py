@@ -23,10 +23,29 @@ def write_json(path,value):
     path.write_text(json.dumps(clean(value),indent=2,allow_nan=False)+'\n')
 
 
+def _git_provenance():
+    """Git is optional, including in installed packages outside a checkout."""
+    values = {}
+    for key, args in (('commit', ['rev-parse', 'HEAD']),
+                      ('working_tree_status', ['status', '--porcelain=v1'])):
+        try:
+            result = subprocess.run(['git', *args], text=True, capture_output=True,
+                                    timeout=5)
+            if result.returncode != 0:
+                reason = 'git {} exited with status {}'.format(args[0], result.returncode)
+                break
+            values[key] = result.stdout.strip()
+        except (OSError, subprocess.SubprocessError, UnicodeError) as error:
+            reason = 'git {} unavailable ({})'.format(args[0], type(error).__name__)
+            break
+    else:
+        values['git_provenance_status'] = dict(status='available', reason=None)
+        return values
+    return dict(commit=None, working_tree_status=None,
+                git_provenance_status=dict(status='unavailable', reason=reason))
+
+
 def provenance(blocked=None):
-    def git(*args):
-        p=subprocess.run(['git',*args],text=True,capture_output=True)
-        return p.stdout.strip() if p.returncode==0 else None
     import importlib.metadata as im
     packages={}
     for name in ('numpy','cupy-cuda12x','scipy','lbm-permeability'):
@@ -35,8 +54,8 @@ def provenance(blocked=None):
     source=Path(__file__).parent
     hashes={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(source.glob('*.py'))}
     out=dict(timestamp_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),host=platform.node(),
-             python=sys.version,packages=packages,commit=git('rev-parse','HEAD'),
-             working_tree_status=git('status','--porcelain=v1'),source_sha256=hashes)
+             python=sys.version,packages=packages,source_sha256=hashes,
+             **_git_provenance())
     if blocked is not None:
         out['mask_sha256_c_order_bool']=hashlib.sha256(np.ascontiguousarray(blocked,dtype=np.bool_).tobytes()).hexdigest()
     return out
