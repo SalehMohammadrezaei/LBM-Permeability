@@ -1,0 +1,86 @@
+{
+  "base_commit": "63182cef1f9509ab9e77cc6d4bcf830048221929",
+  "tests": {
+    "focused.xml": {
+      "name": "pytest",
+      "errors": "2",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "2",
+      "time": "0.898",
+      "timestamp": "2026-09-18T15:18:59.058417+01:00",
+      "hostname": "b-11uxx6xvs954"
+    },
+    "source.xml": {
+      "name": "pytest",
+      "errors": "7",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "7",
+      "time": "1.097",
+      "timestamp": "2026-09-18T15:19:27.368334+01:00",
+      "hostname": "b-11uxx6xvs954"
+    },
+    "focused_fixed.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "17",
+      "time": "1.758",
+      "timestamp": "2026-09-18T15:19:38.166081+01:00",
+      "hostname": "b-11uxx6xvs954"
+    },
+    "source_fixed.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "1",
+      "tests": "125",
+      "time": "43.252",
+      "timestamp": "2026-09-18T15:19:51.275487+01:00",
+      "hostname": "b-11uxx6xvs954"
+    },
+    "installed_cpu.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "10",
+      "tests": "69",
+      "time": "25.363",
+      "timestamp": "2026-09-18T15:20:33.100081+01:00",
+      "hostname": "b-11uxx6xvs954"
+    }
+  },
+  "source_sha256": {
+    "__init__.py": "22dbf134581816f44e7055f38f12f685e4d445dd155457a69f71ca3e54da23e5",
+    "__main__.py": "55cbf81dd845ed8d0d7e0116c7113d278231cf0d7b23ef49a2b83ff4f55f8315",
+    "backends.py": "550e5248ad7404255237935157be71c7403f46972421f4ee49655abd3fd0f99e",
+    "d2q9.py": "765030e701755c4525709b900e259a34f2bdd5e1fd823bc216251936eebfe839",
+    "d2q9_fast.py": "56b2d4a567f3a5be11b912b0225bb920182f6953f4c7864003de0f1c95fb38ab",
+    "d2q9_pressure.py": "5ca6f420f6c53363cd9e7a782e3f7073734ecfe529fcbb5e790e23920c5af454",
+    "d3q19.py": "8a921fc22fd6f60e04fdbc7a70471deaec2f1051c41cd52900345c1323f0a0be",
+    "d3q19_fast.py": "3bf2ca5e562545bf1939c611ba013f846d6e968b38b6f65f2ff4e498c1efb8db",
+    "diagnostics.py": "5ff3ee10df2d565120eb980000159eb3805485fd728f49c1f697f7ea457b3073",
+    "geometry.py": "be378bd396c989998aaf9f6408c08258805a1fb2ff22edb33c67a33949a3be50",
+    "io.py": "d8536a2906d4fd4834c11277c05ef360c27689a67dbde186e3b9afca1cd2442f",
+    "memory.py": "910ec250e72e96e4fac59b2c0eb27d951f6be4665a8680d5f81ebf11df4c7ee1",
+    "morphology.py": "cb99cf1d89da9c4652a4fcc77bf96a913da1d8f542de6fd12458bc528aaa113f",
+    "solver.py": "7cfb600afe0f9289e88850aa202606608d4c53f1c85eebe3183d89827ce90e8c",
+    "tensor.py": "104dbb6ab19c03dc54a02fb388b1dee5a60fe44e4270c7e94fd14f371dafde23",
+    "topology.py": "b1dc6ef2eade7925b923939e6b2044d1607fd8c77d709eecba980711de4df896",
+    "units.py": "b4a2b710ea71065a2f2be4bd6ded12d68f290690d479c4cb5e34dc2db6e1040a",
+    "validation.py": "23dee06d89455184b7c2e8702d257fda6c7723c066fbe3a5141e26c26f6178dc"
+  },
+  "wheel_sha256": "77a6564297df23196013a332483e42172f3a7ffa440377d9ba8bd7d9888d4eea",
+  "numerical_diff_check": "ASTs of solver.py and d2q9_pressure.py match the base commit after removing only resource/helper imports and memory result keywords.",
+  "original_campaign": "Archived benchmark files unchanged; large rock campaign not rerun.",
+  "initial_failure": "First focused and full-suite attempts failed collection because of one extra closing parenthesis in the new pressure memory metadata; fixed before successful reruns.",
+  "platform_scope": "Executed on Linux/WSL with actual GPU in source suite; missing resource import and Linux/macOS unit conventions simulated by focused regressions; no native Windows/macOS run.",
+  "commands": [
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m pytest -q tests/test_packaging.py tests/test_cli.py",
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m pytest -q tests",
+    ".venv/bin/python -m build --outdir results/packaging-followup/dist",
+    "Install wheel with --no-deps --target into a fresh /tmp directory using the isolated CPU-only environment, copy tests outside the repository, and run pytest -q tests with PYTHONPATH set to that target."
+  ]
+}

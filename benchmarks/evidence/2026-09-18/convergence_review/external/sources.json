@@ -1,0 +1,82 @@
+[
+  {
+    "repository": "OPM/LBPM",
+    "commit": "6d686d354e5b8140841d3601e4c8c0e4e4b77e48",
+    "path": "README.md",
+    "url": "https://raw.githubusercontent.com/OPM/LBPM/6d686d354e5b8140841d3601e4c8c0e4e4b77e48/README.md",
+    "sha256": "09f2d8f70ab7eb02941c113350b97a46465a1eea1b0a1013ddc39575da403e74",
+    "local": "results/2026-09-18-pilot/convergence_review/external/OPM_LBPM__README.md"
+  },
+  {
+    "repository": "OPM/LBPM",
+    "commit": "6d686d354e5b8140841d3601e4c8c0e4e4b77e48",
+    "path": "example/NonNewtonianChannelFlow/Permeability.in",
+    "url": "https://raw.githubusercontent.com/OPM/LBPM/6d686d354e5b8140841d3601e4c8c0e4e4b77e48/example/NonNewtonianChannelFlow/Permeability.in",
+    "sha256": "9769b6d9f80e4a18420e0875454709b2b59de4eb9e121bb00058c70d19848cb5",
+    "local": "results/2026-09-18-pilot/convergence_review/external/OPM_LBPM__example_NonNewtonianChannelFlow_Permeability.in"
+  },
+  {
+    "repository": "OPM/LBPM",
+    "commit": "6d686d354e5b8140841d3601e4c8c0e4e4b77e48",
+    "path": "example/systems/summit/3600p/Permeability.in",
+    "url": "https://raw.githubusercontent.com/OPM/LBPM/6d686d354e5b8140841d3601e4c8c0e4e4b77e48/example/systems/summit/3600p/Permeability.in",
+    "sha256": "33145171c25d3296a3f3891f2e4b3c5658893b2b648d2ffffc1802aaae70a9cf",
+    "local": "results/2026-09-18-pilot/convergence_review/external/OPM_LBPM__example_systems_summit_3600p_Permeability.in"
+  },
+  {
+    "repository": "OPM/LBPM",
+    "commit": "6d686d354e5b8140841d3601e4c8c0e4e4b77e48",
+    "path": "tests/lbpm_permeability_simulator.cpp",
+    "url": "https://raw.githubusercontent.com/OPM/LBPM/6d686d354e5b8140841d3601e4c8c0e4e4b77e48/tests/lbpm_permeability_simulator.cpp",
+    "sha256": "498f30e0faf112ec675bda745b3252ff6cce6af0b0e6d59ca546583c69cdc606",
+    "local": "results/2026-09-18-pilot/convergence_review/external/OPM_LBPM__tests_lbpm_permeability_simulator.cpp"
+  },
+  {
+    "repository": "OPM/LBPM",
+    "commit": "6d686d354e5b8140841d3601e4c8c0e4e4b77e48",
+    "path": "models/StokesModel.cpp",
+    "url": "https://raw.githubusercontent.com/OPM/LBPM/6d686d354e5b8140841d3601e4c8c0e4e4b77e48/models/StokesModel.cpp",
+    "sha256": "31164cf17f942e2ff8467d7b75a1156099845601e0173dc567e1ad11bf1f02ed",
+    "local": "results/2026-09-18-pilot/convergence_review/external/OPM_LBPM__models_StokesModel.cpp"
+  },
+  {
+    "repository": "ProjectPhysX/FluidX3D",
+    "commit": "9f3a995599740082690ace8cdc7a82b0396adddd",
+    "path": "LICENSE.md",
+    "url": "https://raw.githubusercontent.com/ProjectPhysX/FluidX3D/9f3a995599740082690ace8cdc7a82b0396adddd/LICENSE.md",
+    "sha256": "a75453c33276490ca5417d88f3b0281223698b863fde1068332c31c8635efe67",
+    "local": "results/2026-09-18-pilot/convergence_review/external/ProjectPhysX_FluidX3D__LICENSE.md"
+  },
+  {
+    "repository": "ProjectPhysX/FluidX3D",
+    "commit": "9f3a995599740082690ace8cdc7a82b0396adddd",
+    "path": "README.md",
+    "url": "https://raw.githubusercontent.com/ProjectPhysX/FluidX3D/9f3a995599740082690ace8cdc7a82b0396adddd/README.md",
+    "sha256": "c59f40c9305a73c4abe1ec2e74a124a06547bb2052ac676019931613b8102a5b",
+    "local": "results/2026-09-18-pilot/convergence_review/external/ProjectPhysX_FluidX3D__README.md"
+  },
+  {
+    "repository": "OPM/LBPM",
+    "commit": "6d686d354e5b8140841d3601e4c8c0e4e4b77e48",
+    "path": "models/MRTModel.cpp",
+    "url": "https://raw.githubusercontent.com/OPM/LBPM/6d686d354e5b8140841d3601e4c8c0e4e4b77e48/models/MRTModel.cpp",
+    "sha256": "a298c3607dc94f6a7a8fc2a28da9f992bf45be31987707f22cba803e507b94ec",
+    "local": "results/2026-09-18-pilot/convergence_review/external/OPM_LBPM__models_MRTModel.cpp"
+  },
+  {
+    "repository": "sailfish-team/sailfish",
+    "commit": "b7140c580e1f4cb406dde947c8d8d5a8a6b2d79e",
+    "path": "README",
+    "url": "https://raw.githubusercontent.com/sailfish-team/sailfish/b7140c580e1f4cb406dde947c8d8d5a8a6b2d79e/README",
+    "sha256": "21b2b8c9ccd785fa74671ba5c42f8799fd37e34b2908cdbd17852ac739e9c5e3",
+    "local": "results/2026-09-18-pilot/convergence_review/external/sailfish-team_sailfish__README"
+  },
+  {
+    "repository": "sailfish-team/sailfish",
+    "commit": "b7140c580e1f4cb406dde947c8d8d5a8a6b2d79e",
+    "path": "examples/ldc_3d.py",
+    "url": "https://raw.githubusercontent.com/sailfish-team/sailfish/b7140c580e1f4cb406dde947c8d8d5a8a6b2d79e/examples/ldc_3d.py",
+    "sha256": "767938003f8645dc4bbc6eba5da3df93b75957f9e6f98958d3378ec0abb1fae1",
+    "local": "results/2026-09-18-pilot/convergence_review/external/sailfish-team_sailfish__examples_ldc_3d.py"
+  }
+]

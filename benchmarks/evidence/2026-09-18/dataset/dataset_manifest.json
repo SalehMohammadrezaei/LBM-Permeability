@@ -1,0 +1,276 @@
+{
+  "source_record": "https://digitalporousmedia.org/published-datasets/drp.project.published.DRP-29",
+  "doi": "10.17612/P7BC78",
+  "authors": [
+    "Rodolfo Victor",
+    "Masa Prodanovic"
+  ],
+  "institution": "Petrobras",
+  "license": "ODC-BY 1.0 (public project metadata)",
+  "files": [
+    {
+      "category": "segmentation",
+      "entry_id": "f4d09c8b-9067-4378-868f-f1f6c09394c3",
+      "url": "https://web.corral.tacc.utexas.edu/digitalporousmedia/DRP-29/Bentheimer%20sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Seg_Oxyz_0001_0001_0001/Seg_Oxyz_0001_0001_0001.raw",
+      "local_file": "Seg_Oxyz_0001_0001_0001.raw",
+      "sha256": "42bf2c7b771333d1a640afb7b5967b25cd04c78504f9648e457b75749ebe1b2a",
+      "bytes": 125000000,
+      "download_s": 53.89950741600478,
+      "retrieved_utc": "2026-09-18T12:10:17Z",
+      "record": {
+        "name": "Seg_Oxyz_0001_0001_0001.raw",
+        "path": "Bentheimer sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Seg_Oxyz_0001_0001_0001/Seg_Oxyz_0001_0001_0001.raw",
+        "type": "file",
+        "uuid": "f820f3d6-6abd-493d-9acb-b5093f9da8ec",
+        "value": {
+          "name": "Seg_Oxyz_0001_0001_0001.raw",
+          "width": 500,
+          "height": 500,
+          "dataType": "file",
+          "byteOrder": "little_endian",
+          "imageType": "8_bit",
+          "numberOfImages": 500,
+          "gapBetweenImages": 0,
+          "offsetToFirstImage": 0,
+          "isAdvancedImageFile": true,
+          "useBinaryCorrection": false
+        },
+        "system": "drp.project.published.DRP-29",
+        "legacyPath": "projects/29/analysis/17/images/Seg_Oxyz_0001_0001_0001.raw"
+      },
+      "entry_description": "Segmented data: 0 for pore voxels and 255 for grain voxels",
+      "digitalDataset": "39674ad7-d539-46f9-9233-314a2d9c7b7b"
+    },
+    {
+      "category": "ct",
+      "entry_id": "38f6b4fe-4a55-4188-ac28-06cf03c0d509",
+      "url": "https://web.corral.tacc.utexas.edu/digitalporousmedia/DRP-29/Bentheimer%20sandstone/BE_CT_Oxyz_0001_0001_0001/Cropped_Oxyz_001_001_001_Nxyz_500_500_500.raw",
+      "local_file": "Cropped_Oxyz_001_001_001_Nxyz_500_500_500.raw",
+      "sha256": "c08f5d4d6166eb2d8ab844c635173f7da1a90d57255a490bc51a2059f74b2fe9",
+      "bytes": 250000000,
+      "download_s": 80.8636097300041,
+      "retrieved_utc": "2026-09-18T12:11:45Z",
+      "record": {
+        "name": "Cropped_Oxyz_001_001_001_Nxyz_500_500_500.raw",
+        "path": "Bentheimer sandstone/BE_CT_Oxyz_0001_0001_0001/Cropped_Oxyz_001_001_001_Nxyz_500_500_500.raw",
+        "type": "file",
+        "uuid": "0af680f2-c0ab-49f7-882f-57df35127ea9",
+        "value": {
+          "name": "Cropped_Oxyz_001_001_001_Nxyz_500_500_500.raw",
+          "width": 500,
+          "height": 500,
+          "dataType": "file",
+          "byteOrder": "little_endian",
+          "imageType": "16_bit_unsigned",
+          "numberOfImages": 500,
+          "gapBetweenImages": 0,
+          "offsetToFirstImage": 0,
+          "isAdvancedImageFile": true,
+          "useBinaryCorrection": false
+        },
+        "system": "drp.project.published.DRP-29",
+        "legacyPath": "projects/29/origin/52/images/Cropped_Oxyz_001_001_001_Nxyz_500_500_500.raw"
+      },
+      "entry_description": "Original micro-tomography data for Bentheimer sandstone, subset 500^3, origin (x,y,z)=(1,1,1)",
+      "digitalDataset": null
+    },
+    {
+      "category": "velocity",
+      "entry_id": "4ecb6b63-db08-4e09-8d9c-f21c702e4b9f",
+      "url": "https://web.corral.tacc.utexas.edu/digitalporousmedia/DRP-29/Bentheimer%20sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Velocity_Oxyz_0001_0001_0001/Xvelocity_Oxyz_0001_0001_0001.raw",
+      "local_file": "Xvelocity_Oxyz_0001_0001_0001.raw",
+      "sha256": "b3ee5393ab3e4475f96878b1d3cb14aaba7a95eb1b906635944fde0defefade7",
+      "bytes": 500000000,
+      "download_s": 154.73354483698495,
+      "retrieved_utc": "2026-09-18T12:14:38Z",
+      "record": {
+        "name": "Xvelocity_Oxyz_0001_0001_0001.raw",
+        "path": "Bentheimer sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Velocity_Oxyz_0001_0001_0001/Xvelocity_Oxyz_0001_0001_0001.raw",
+        "type": "file",
+        "uuid": "b2572e94-6add-4665-8ee6-09e2f1d996d3",
+        "value": {
+          "name": "Xvelocity_Oxyz_0001_0001_0001.raw",
+          "width": 500,
+          "height": 500,
+          "dataType": "file",
+          "byteOrder": "little_endian",
+          "imageType": "32_bit_real",
+          "numberOfImages": 500,
+          "gapBetweenImages": 0,
+          "offsetToFirstImage": 0,
+          "isAdvancedImageFile": true,
+          "useBinaryCorrection": false
+        },
+        "system": "drp.project.published.DRP-29",
+        "legacyPath": "projects/29/analysis/43/images/Xvelocity_Oxyz_0001_0001_0001.raw"
+      },
+      "entry_description": "Velocity field components",
+      "digitalDataset": "39674ad7-d539-46f9-9233-314a2d9c7b7b"
+    },
+    {
+      "category": "velocity",
+      "entry_id": "4ecb6b63-db08-4e09-8d9c-f21c702e4b9f",
+      "url": "https://web.corral.tacc.utexas.edu/digitalporousmedia/DRP-29/Bentheimer%20sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Velocity_Oxyz_0001_0001_0001/Yvelocity_Oxyz_0001_0001_0001.raw",
+      "local_file": "Yvelocity_Oxyz_0001_0001_0001.raw",
+      "sha256": "28cc04e19a3ac233b4bf2eedd20d1eedd2179180376e1ac663a9d470ca27b336",
+      "bytes": 500000000,
+      "download_s": 155.70403731500846,
+      "retrieved_utc": "2026-09-18T12:17:32Z",
+      "record": {
+        "name": "Yvelocity_Oxyz_0001_0001_0001.raw",
+        "path": "Bentheimer sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Velocity_Oxyz_0001_0001_0001/Yvelocity_Oxyz_0001_0001_0001.raw",
+        "type": "file",
+        "uuid": "3139052d-11c4-408e-b5ee-6817babc1a44",
+        "value": {
+          "name": "Yvelocity_Oxyz_0001_0001_0001.raw",
+          "width": 500,
+          "height": 500,
+          "dataType": "file",
+          "byteOrder": "little_endian",
+          "imageType": "32_bit_real",
+          "numberOfImages": 500,
+          "gapBetweenImages": 0,
+          "offsetToFirstImage": 0,
+          "isAdvancedImageFile": true,
+          "useBinaryCorrection": false
+        },
+        "system": "drp.project.published.DRP-29",
+        "legacyPath": "projects/29/analysis/43/images/Yvelocity_Oxyz_0001_0001_0001.raw"
+      },
+      "entry_description": "Velocity field components",
+      "digitalDataset": "39674ad7-d539-46f9-9233-314a2d9c7b7b"
+    },
+    {
+      "category": "velocity",
+      "entry_id": "4ecb6b63-db08-4e09-8d9c-f21c702e4b9f",
+      "url": "https://web.corral.tacc.utexas.edu/digitalporousmedia/DRP-29/Bentheimer%20sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Velocity_Oxyz_0001_0001_0001/Zvelocity_Oxyz_0001_0001_0001.raw",
+      "local_file": "Zvelocity_Oxyz_0001_0001_0001.raw",
+      "sha256": "e057d10b5ad589165386c90a176fb1a19951e630785c758ac6b9abaccfd36c7f",
+      "bytes": 500000000,
+      "download_s": 139.6278053999995,
+      "retrieved_utc": "2026-09-18T12:20:06Z",
+      "record": {
+        "name": "Zvelocity_Oxyz_0001_0001_0001.raw",
+        "path": "Bentheimer sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Velocity_Oxyz_0001_0001_0001/Zvelocity_Oxyz_0001_0001_0001.raw",
+        "type": "file",
+        "uuid": "b232af07-686e-4721-a5ae-479ef9f236c9",
+        "value": {
+          "name": "Zvelocity_Oxyz_0001_0001_0001.raw",
+          "width": 500,
+          "height": 500,
+          "dataType": "file",
+          "byteOrder": "little_endian",
+          "imageType": "32_bit_real",
+          "numberOfImages": 500,
+          "gapBetweenImages": 0,
+          "offsetToFirstImage": 0,
+          "isAdvancedImageFile": true,
+          "useBinaryCorrection": false
+        },
+        "system": "drp.project.published.DRP-29",
+        "legacyPath": "projects/29/analysis/43/images/Zvelocity_Oxyz_0001_0001_0001.raw"
+      },
+      "entry_description": "Velocity field components",
+      "digitalDataset": "39674ad7-d539-46f9-9233-314a2d9c7b7b"
+    },
+    {
+      "category": "pressure",
+      "entry_id": "b23e5db4-a8bb-4a59-aaa1-8e91bbf21d53",
+      "url": "https://web.corral.tacc.utexas.edu/digitalporousmedia/DRP-29/Bentheimer%20sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Pressure_Oxyz_0001_0001_0001/Pressure_Oxyz_0001_0001_0001.raw",
+      "local_file": "Pressure_Oxyz_0001_0001_0001.raw",
+      "sha256": "8f29ea1d651b0ed2c7e51bbd0c56bc3fbc143fcc0062a1bebe8d5dffda6c497a",
+      "bytes": 500000000,
+      "download_s": 130.9586957800202,
+      "retrieved_utc": "2026-09-18T12:22:31Z",
+      "record": {
+        "name": "Pressure_Oxyz_0001_0001_0001.raw",
+        "path": "Bentheimer sandstone/BE_CT_Oxyz_0001_0001_0001/BE_Pressure_Oxyz_0001_0001_0001/Pressure_Oxyz_0001_0001_0001.raw",
+        "type": "file",
+        "uuid": "030d0130-d0da-4cf4-b0bb-a227c5e8cd9f",
+        "value": {
+          "name": "Pressure_Oxyz_0001_0001_0001.raw",
+          "width": 500,
+          "height": 500,
+          "dataType": "file",
+          "byteOrder": "little_endian",
+          "imageType": "32_bit_real",
+          "numberOfImages": 500,
+          "gapBetweenImages": 0,
+          "offsetToFirstImage": 0,
+          "isAdvancedImageFile": true,
+          "useBinaryCorrection": false
+        },
+        "system": "drp.project.published.DRP-29",
+        "legacyPath": "projects/29/analysis/42/images/Pressure_Oxyz_0001_0001_0001.raw"
+      },
+      "entry_description": "Pressure field",
+      "digitalDataset": "39674ad7-d539-46f9-9233-314a2d9c7b7b"
+    }
+  ],
+  "decision": "application example only",
+  "shape": [
+    500,
+    500,
+    500
+  ],
+  "voxel_size_m": 5e-06,
+  "array_axes": [
+    "z",
+    "y",
+    "x"
+  ],
+  "storage_order": "C: width=x fastest, height=y, image stack=z; physical handedness unverified",
+  "crop_policy": {
+    "128": [
+      [
+        0,
+        128
+      ],
+      [
+        0,
+        128
+      ],
+      [
+        0,
+        128
+      ]
+    ],
+    "256": [
+      [
+        0,
+        256
+      ],
+      [
+        0,
+        256
+      ],
+      [
+        0,
+        256
+      ]
+    ],
+    "morphology": [
+      [
+        0,
+        64
+      ],
+      [
+        0,
+        64
+      ],
+      [
+        0,
+        64
+      ]
+    ]
+  },
+  "missing_reference_requirements": [
+    "forcing/pressure drop",
+    "viscosity/density",
+    "velocity/pressure units",
+    "all boundary conditions and reservoirs",
+    "reference convergence",
+    "physical orientation and handedness"
+  ],
+  "correspondence_note": "same sample and origin labels and enclosing CT path; digitalDataset UUID in migrated analysis metadata differs from enclosing CT node, retained for investigation"
+}

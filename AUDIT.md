@@ -1,102 +1,59 @@
-# Correctness audit — LBM permeability solver
+# Executed evidence ledger — 18 September 2026
 
-Line-by-line audit of the D2Q9 / D3Q19 Stokes-flow permeability code. One real
-bug was found and fixed; everything else checked out. Summary of what was
-verified and what changed.
+Baseline HEAD: `c1a195b62a9e519dbfeb23f2c764da1f2d14fad8`.
+The existing uncommitted pressure `walls_y` addition was saved as a patch and its
+behavior retained. No reset, push, release, license change, driver change or
+interference with `porous_flow-opt` jobs was performed.
 
-## The bug: collision was applied at solid nodes
+This ledger supersedes the former blanket correctness and performance claims.
+The final case inventory and remaining work are in `CODE_AND_BENCHMARK_HANDOFF.md`.
+All paths below are relative to `results/2026-09-18-pilot/`.
 
-**Where:** the BGK-collision + Guo-forcing update in all three solvers
-(`d2q9.py`, `d3q19.py`, `d3q19_fast.py`).
+| Item | Observed evidence | Action/status |
+|---|---|---|
+| Existing CPU channel tests | `baseline/pytest.log`: 2 passed, 8.48 s | Retained; later source tests also executed |
+| Actual remote hardware and CUDA | `baseline/environment.json` | Host b-11uxx6xvs954, real allocation and compiled CUDA kernel passed |
+| Invalid tau/zero steps/fully fluid | `baseline/probes.json` contains misleading finite outputs from original source | Shared validation, special geometry states and guarded extraction |
+| Shared statuses and precision | `reliability_second.log`: 91 passed, one inapplicable dimensional skip | NumPy, CuPy array, CUDA and pressure tested |
+| First regression failures | `reliability_first.log`: 16 failed, 70 passed, one skipped | Retained; NVRTC stdint header unavailable, changed to checked 64-bit type; straight high-force channel hit quality rejection, so instability fixture changed to porous mask |
+| Legacy fine channels after shared core | `after_core.log`: 2 passed | Original collision and reflection numerics preserved |
+| CPU wheel outside repository | `installed_cpu_tests.log`: initial wheel 40 passed, 7 skipped | CPU-only environment, no source-tree imports |
+| Channels, tau, tensors, backend states, pressure | `verification/`, definitions plus raw results, CSV histories | Executed; failures and sensitivity retained |
+| Weak-force float32 storage | `verification/precision32_*/` | All three cases unconverged; no accepted float32 claim for these settings |
+| Oblique 3D laminate | `verification/laminate3_*/` | Signed cross terms and reciprocity pass; continuum tensor errors about 3.32%, 2.88%, 2.41% |
+| Repeated throughput | `performance/` | Five measured repetitions for completed configurations; setup/loop/public-call timing distinctions retained |
+| Bentheimer exact segmentation | `dataset/dataset_manifest.json`, `inspection.json` | Byte count, labels, checksums, fixed crops and morphology ROI verified |
+| Reference fields | `dataset/reference_field_inspection.json`, `reference_support_and_profiles.json` | Units/BVP missing; velocity support includes one-voxel solid shell; no matched benchmark claim |
+| Bentheimer 128/256 pilots | `rocks/` | Original periodic boundary problem on specified crops; timeout is not permeability |
+| Full 500³ | `rocks/full_500_decision.json` | Memory/prequalification gate; no automatic allocation |
 
-**What was wrong:** the collision update `f += -(f-feq)/tau + S` was applied to
-*every* lattice node, including solid ones. The intended wall model is halfway
-bounce-back, which assumes the solid node still holds its **pre-collision**
-populations when the reflection happens. Relaxing the solid populations toward a
-(spurious) local equilibrium first corrupts what gets bounced back.
+The common result monitor evaluates all superficial velocity components, full-field
+RMS change, global periodic population mass, finite states, positive fluid density
+and Mach. Pressure additionally checks signed gradient and cross-section mass flux.
+These checks do not certify continuum, segmentation or representative-volume error.
 
-**Effect:** it injects about half a lattice spacing of slip at every wall, so
-the *effective* aperture of a channel becomes `gap + 1` instead of `gap`.
-Permeability scales like aperture³, so the error is:
+The initial SciPy morphology implementation is an exhaustive covering-ball local
+thickness for bounded finite ROIs; it is not nearest-wall-distance binning.
+PoreSpy dependency resolution failed on Python 3.14 (`porespy_dependencies.log`).
+Periodic morphology is explicitly unsupported. Connectivity diagnostics distinguish
+finite spanning from periodic winding and never modify the input mask.
 
-| throat width | k overestimate |
-|---|---|
-| 20 px | ~16 % |
-| 10 px | ~33 % |
-| 3 px  | ~95 % |
+Primary full-text reference formulas and the DRP-29 simulation methods remain
+unrecovered. See `docs/reference_scope.md`; legacy sphere/cylinder discrepancies are
+reported without declaring an exact validation pass or blaming the reference.
 
-The error is worst exactly where it hurts most — thin, few-pixel pore throats,
-which dominate tight micromodels and digital-rock samples.
+Final follow-up: source tests passed 110 with one dimensional skip; the final built
+wheel passed 46 with nine GPU-dependent skips in an external CPU-only environment,
+and 110 with one skip using the actual GPU outside the checkout. Installed package
+hashes match the source. See `release_tests.xml`, `installed_cpu_release_tests.xml`
+and `installed_gpu_release_tests.xml`; earlier failures above remain archived.
 
-**The fix:** collide fluid nodes only; leave solid populations untouched so the
-bounce-back reflects the correct pre-collision distribution.
-
-- `d2q9.py` / `d3q19.py` (array): multiply the collision update by a fluid mask
-  `fluid_f = (~blocked)`.
-- `d3q19_fast.py` (fused CUDA kernel): the collide kernel now writes
-  `solid ? f_q : collided` instead of the collided value unconditionally.
-
-## Validation after the fix
-
-Plane-Poiseuille flow between parallel plates has the exact superficial
-permeability `k = gap³ / (12·N)`. After the fix, the measured aperture equals
-the geometric `gap` and the permeability converges to the analytic value at
-**second order**:
-
-```
-2D:        aperture=20.008 (gap=20)   k=16.708   analytic=16.667   err=0.25%
-3D array : aperture=16.010 (gap=16)   k=10.708   analytic=10.667   err=0.39%
-3D kernel: aperture=16.010 (gap=16)   k=10.708   analytic=10.667   err=0.39%
-
-convergence (2D):  gap=10 -> 1.00%,  gap=20 -> 0.25%,  gap=40 -> 0.062%
-                   (error quarters per doubling = 2nd order, as it should)
-```
-
-Independent, non-Poiseuille benchmark — Sangani & Acrivos (1982) square array of
-cylinders, transverse Stokes flow:
-
-```
- c (solid)   k/a^2 LBM    k/a^2 S&A    rel.err
-   0.100     1.248e+00    1.257e+00     0.73%
-   0.151     5.661e-01    5.728e-01     1.17%
-   0.199     3.064e-01    3.123e-01     1.90%
-   0.300     1.006e-01    1.160e-01    13.3%   (correlation + staircase error near c->0.4)
-```
-
-Note on the fused kernel: this machine has no CuPy/GPU, so the fused CUDA kernel
-could not be compiled and run here. Its fix was instead validated by
-transcribing the *exact* two-kernel algorithm (guarded collide + pull-based
-bounce-back stream) into NumPy — that transcription reproduces the bug
-(aperture=17) without the guard and the correct aperture=16 with it, matching
-the array path. Re-run the Poiseuille check on a GPU box to confirm end-to-end.
-
-## Residual (not a bug)
-
-A ~0.3 % permeability variation remains over `tau = 0.7…1.6`. This is the
-well-known viscosity-dependent slip of BGK + bounce-back; it is minimized at
-`tau = 1` (the default) and would require TRT/MRT to remove entirely. Left as-is.
-
-## Everything else — verified correct
-
-- **Lattice constants:** D2Q9 and D3Q19 `CX/CY/CZ`, weights `W`, opposite-index
-  tables — all consistent (Σw = 1, Σ w·cc = cs²·I, opposite pairs correct).
-- **Equilibrium** `feq = w·ρ·(1 + 3(c·u) + 4.5(c·u)² − 1.5u²)` — correct (cs²=1/3).
-- **Guo forcing** `S = w·(1 − 1/2τ)·(3 cF + 9 cu·cF − 3 uF)` with the half-force
-  velocity correction `u = (Σf·c + F/2)/ρ` — correct.
-- **Momentum sums** in `_mom_{x,y,z}` — match the velocity-set tables.
-- **Viscosity / permeability:** `ν = (τ−½)/3`, `k = <u>·ν/F` with ρ=1, μ=ν — correct.
-- **Streaming** (periodic roll; kernel pull) and **bounce-back** (pair swap;
-  kernel pull-opposite) — correct.
-- **Unit chain** (`units.py`): `k_LU·dx²` → m², `/9.869233e-16` → mD — correct.
-- **Geometry, drivers, curve, cylinder validation:** `True = solid` convention
-  used consistently throughout; F selection and conversions correct.
-
-## Files changed
-
-```
-lbm_permeability/d2q9.py        collide fluid nodes only
-lbm_permeability/d3q19.py       collide fluid nodes only
-lbm_permeability/d3q19_fast.py  collide kernel: keep solid populations unchanged
-tests/test_poiseuille.py        reference formula corrected to gap^3/(12N);
-                                tightened tolerance; assert 2nd-order convergence
-```
+The 256³ periodic application now has two accepted full tensors: standard force
+and half force, totaling 31.20 minutes across all directional solves. Halving force
+changes the tensor by 2.787e-6 relative; tightening convergence tolerances 100-fold
+changes the x response by 8.644e-6 relative. See `long_rock/` and
+`convergence_review/`. An accepted 128³ velocity export exactly reproduces its
+earlier history. This does not resolve the external reference's missing boundary
+conditions or justify a 500³ allocation. Only the measured 2.46% diagnostic-overhead
+optimization was adopted; two additional kernel probes were retained without
+changing production kernels.

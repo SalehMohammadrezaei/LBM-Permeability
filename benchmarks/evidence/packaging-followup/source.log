@@ -1,0 +1,194 @@
+
+==================================== ERRORS ====================================
+______________________ ERROR collecting tests/test_cli.py ______________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_cli.py:3: in <module>
+    from lbm_permeability.__main__ import main
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+____________________ ERROR collecting tests/test_outputs.py ____________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_outputs.py:3: in <module>
+    from lbm_permeability.tensor import assemble_tensor,compute_permeability_tensor
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+___________________ ERROR collecting tests/test_packaging.py ___________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_packaging.py:11: in <module>
+    from lbm_permeability import io, memory
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+____________________ ERROR collecting tests/test_physics.py ____________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_physics.py:3: in <module>
+    from lbm_permeability import lbm_stokes,lbm_stokes_2d_fast,lbm_stokes_3d_fast,k_from_run,geometry
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+__________________ ERROR collecting tests/test_poiseuille.py ___________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_poiseuille.py:20: in <module>
+    from lbm_permeability import lbm_stokes, k_from_run, geometry
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+__________________ ERROR collecting tests/test_reliability.py __________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_reliability.py:3: in <module>
+    from lbm_permeability import lbm_stokes, lbm_stokes_3d, lbm_stokes_2d_fast, lbm_stokes_3d_fast, lbm_stokes_2d_pressure, k_from_run, geometry
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+___________________ ERROR collecting tests/test_topology.py ____________________
+.venv/lib/python3.14/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.14/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+../../miniforge/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1406: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_topology.py:3: in <module>
+    from lbm_permeability.topology import connectivity_report
+lbm_permeability/__init__.py:9: in <module>
+    from .d2q9_pressure import lbm_stokes_2d_pressure
+E     File "/home/impres/Saleh/lbm-permeability/lbm_permeability/d2q9_pressure.py", line 163
+E       note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache')))
+E                                                                                                        ^
+E   SyntaxError: unmatched ')'
+=========================== short test summary info ============================
+ERROR tests/test_cli.py
+ERROR tests/test_outputs.py
+ERROR tests/test_packaging.py
+ERROR tests/test_physics.py
+ERROR tests/test_poiseuille.py
+ERROR tests/test_reliability.py
+ERROR tests/test_topology.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 7 errors during collection !!!!!!!!!!!!!!!!!!!!
+7 errors in 1.10s

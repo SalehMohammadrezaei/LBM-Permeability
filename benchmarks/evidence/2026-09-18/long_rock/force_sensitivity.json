@@ -1,0 +1,6 @@
+{
+  "valid_pair": true,
+  "relative_tensor_error": 2.7873221580185188e-06,
+  "acceptance_threshold": 0.01,
+  "passed": true
+}

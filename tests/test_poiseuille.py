@@ -9,8 +9,7 @@ where ``gap`` is the number of fluid rows.  For a correct half-way bounce-back
 the no-slip walls sit exactly half a lattice spacing outside the last fluid
 node, so the *effective* aperture equals ``gap`` (not ``gap + 1``).  The
 discrete LBM result converges to this value at **second order** in the
-resolution (the residual is the tau-dependent BGK-bounce-back slip, smallest
-at tau = 1), which is what these tests assert.
+resolution (the residual is the tau-dependent BGK-bounce-back discretization error), which is what these tests assert.
 """
 import os
 import sys

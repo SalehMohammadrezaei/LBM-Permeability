@@ -7,6 +7,7 @@ images (e.g. micro-CT or simulation snapshots) instead.
 from __future__ import annotations
 
 import numpy as np
+from .validation import mask, integer, positive
 
 
 def parallel_plates(Ny, Nx, gap):
@@ -19,6 +20,8 @@ def parallel_plates(Ny, Nx, gap):
     (parabolic Poiseuille profile, then converted to a superficial velocity
     over the whole Ny-tall domain).  Used as the validation benchmark.
     """
+    integer("Ny",Ny); integer("Nx",Nx); integer("gap",gap)
+    if gap > Ny: raise ValueError("gap cannot exceed Ny")
     blocked = np.ones((Ny, Nx), dtype=bool)
     lo = (Ny - gap) // 2
     blocked[lo:lo + gap, :] = False
@@ -27,8 +30,10 @@ def parallel_plates(Ny, Nx, gap):
 
 def random_disks(Ny, Nx, n_disks, radius, seed=0, periodic=True):
     """A 2D bed of randomly placed solid disks (grains)."""
+    integer("Ny",Ny); integer("Nx",Nx); positive("radius",radius)
     rng = np.random.default_rng(seed)
-    yy, xx = np.mgrid[0:Ny, 0:Nx]
+    integer("n_disks",n_disks,0)
+    yy, xx = np.ogrid[0:Ny, 0:Nx]
     blocked = np.zeros((Ny, Nx), dtype=bool)
     for _ in range(n_disks):
         cy, cx = rng.integers(0, Ny), rng.integers(0, Nx)
@@ -42,9 +47,11 @@ def random_disks(Ny, Nx, n_disks, radius, seed=0, periodic=True):
 
 
 def random_spheres(Nz, Ny, Nx, n_spheres, radius, seed=0, periodic=True):
-    """A 3D pack of randomly placed solid spheres (grains)."""
+    """Overlapping randomly placed solid spheres, not a nonoverlapping packing."""
+    integer("Ny",Ny); integer("Nx",Nx); positive("radius",radius)
     rng = np.random.default_rng(seed)
-    zz, yy, xx = np.mgrid[0:Nz, 0:Ny, 0:Nx]
+    integer("Nz",Nz); integer("n_spheres",n_spheres,0)
+    zz, yy, xx = np.ogrid[0:Nz, 0:Ny, 0:Nx]
     blocked = np.zeros((Nz, Ny, Nx), dtype=bool)
     for _ in range(n_spheres):
         cz, cy, cx = rng.integers(0, Nz), rng.integers(0, Ny), rng.integers(0, Nx)
@@ -59,4 +66,5 @@ def random_spheres(Nz, Ny, Nx, n_spheres, radius, seed=0, periodic=True):
 
 def porosity(blocked):
     """Fluid fraction of the domain."""
-    return float(1.0 - blocked.mean())
+    blocked = mask(blocked)
+    return float(np.count_nonzero(~blocked) / blocked.size)

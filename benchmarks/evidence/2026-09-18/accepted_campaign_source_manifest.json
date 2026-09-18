@@ -1,0 +1,23 @@
+{
+  "source_sha256": {
+    "__init__.py": "22dbf134581816f44e7055f38f12f685e4d445dd155457a69f71ca3e54da23e5",
+    "__main__.py": "51b1bf693b11619aa1dc5d99cdbc45d41f17a776f7ff18d221bc3b140f9292ba",
+    "backends.py": "550e5248ad7404255237935157be71c7403f46972421f4ee49655abd3fd0f99e",
+    "d2q9.py": "765030e701755c4525709b900e259a34f2bdd5e1fd823bc216251936eebfe839",
+    "d2q9_fast.py": "56b2d4a567f3a5be11b912b0225bb920182f6953f4c7864003de0f1c95fb38ab",
+    "d2q9_pressure.py": "3272dae85a0cfaeb7f632bd8b015cbc957d3c1495e02e766a347621805173e5a",
+    "d3q19.py": "8a921fc22fd6f60e04fdbc7a70471deaec2f1051c41cd52900345c1323f0a0be",
+    "d3q19_fast.py": "3bf2ca5e562545bf1939c611ba013f846d6e968b38b6f65f2ff4e498c1efb8db",
+    "diagnostics.py": "5ff3ee10df2d565120eb980000159eb3805485fd728f49c1f697f7ea457b3073",
+    "geometry.py": "be378bd396c989998aaf9f6408c08258805a1fb2ff22edb33c67a33949a3be50",
+    "io.py": "d61f9af251325286ed6f358e6e796ae30df4a3f0340af99d6c98f2e8d1d93a0b",
+    "morphology.py": "cb99cf1d89da9c4652a4fcc77bf96a913da1d8f542de6fd12458bc528aaa113f",
+    "solver.py": "922361a685e9e0365a9546d74386e5ff9f06a2a120bab602a406ac760d77708d",
+    "tensor.py": "104dbb6ab19c03dc54a02fb388b1dee5a60fe44e4270c7e94fd14f371dafde23",
+    "topology.py": "b1dc6ef2eade7925b923939e6b2044d1607fd8c77d709eecba980711de4df896",
+    "units.py": "b4a2b710ea71065a2f2be4bd6ded12d68f290690d479c4cb5e34dc2db6e1040a",
+    "validation.py": "23dee06d89455184b7c2e8702d257fda6c7723c066fbe3a5141e26c26f6178dc"
+  },
+  "archive_sha256": "cecbfdde449d2f7df20e69fa437843519bea5026db3b271b0b74ec147073154d",
+  "note": "Frozen numerical source used for 128/256 tolerance checks, overhead follow-up and long tensor campaign; archive before any later packaging/CLI/optimization changes"
+}
