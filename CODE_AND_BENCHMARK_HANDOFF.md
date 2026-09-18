@@ -2,18 +2,47 @@
 
 Technical evidence only; no manuscript or submission material was edited.
 Repository: `/home/impres/Saleh/lbm-permeability` on `b-11uxx6xvs954`.
-Baseline commit: `c1a195b62a9e519dbfeb23f2c764da1f2d14fad8` (main).
-The completed implementation is being preserved on `validation-and-tensor-workflow`
-at the owner's request. The owner's initial pressure-wall patch is recorded
+Historical baseline: `c1a195b62a9e519dbfeb23f2c764da1f2d14fad8` (pre-campaign main).
+[PR #1](https://github.com/SalehMohammadrezaei/LBM-Permeability/pull/1) was merged
+using a merge commit, preserving all three development commits:
+`7b5908a0cf34c3e78e5790c8142caa6894bdf1b9` on main. Its reviewed second parent is
+`84649088294e6b29dd186b98de8e60b141bdd81a`; the merge tree is identical to that
+reviewed head. This handoff is updated by a subsequent documentation-only commit.
+The owner's initial pressure-wall patch is recorded
 separately in commit `7489f432e17b6648b23980981724505dbe3b4553` and `docs/provenance/original_pressure_walls.patch`.
 The original local copy remains in `results/2026-09-18-pilot/baseline/user_changes.patch`.
-No merge to main, release, license/driver change or intervention in `porous_flow-opt`
-processes was performed. Selected small evidence records are tracked under
+No release, license/driver change or intervention in `porous_flow-opt` processes
+was performed. Selected small evidence records are tracked under
 `benchmarks/evidence/2026-09-18/`; large local outputs remain excluded from Git.
 
 Evidence root below means `results/2026-09-18-pilot/`. Commands are in
 `docs/benchmark_reproduction.md`; equations and limitations are in
 `docs/numerical_limits.md`. Raw JSON is authoritative over rounded values here.
+
+### Final software versus historical snapshots
+
+The final software includes the packaging-portability fixes in reviewed commit
+`84649088294e6b29dd186b98de8e60b141bdd81a`, now reachable through the main merge
+above. The package version remains 0.1.0; no release or version bump was made.
+Its 18 package-file hashes are recorded in
+`benchmarks/evidence/packaging-followup/summary.json` and `installed_source.json`.
+
+| Evidence scope | Source identity and interpretation |
+|---|---|
+| Initial baseline and owner's wall patch | Baseline commit plus the saved original patch; owner patch subsequently recorded as `7489f432e17b6648b23980981724505dbe3b4553` |
+| Verification, initial rock pilots and accepted tensor campaign | Historical working-tree snapshots, identified by each result's package hashes and the saved source archives; their recorded baseline commit alone does not identify the modified source |
+| Accepted 256³ tensor campaign | `accepted_campaign_source.tar.gz` and its manifest, plus per-result hashes; predates the CLI missing-file fix and optional Git/RSS packaging follow-up |
+| Archived pre-portability wheel and compact bundle | Package files correspond to `63182cef1f9509ab9e77cc6d4bcf830048221929`; 110-pass GPU and 46-pass CPU wheel records belong to this snapshot |
+| Final merged software | `84649088294e6b29dd186b98de8e60b141bdd81a`, incorporated unchanged by merge `7b5908a0cf34c3e78e5790c8142caa6894bdf1b9`; separate portability test records below |
+
+Historical results, source manifests, source archives, wheels and the compact
+bundle retain their original bytes and hashes. They were not regenerated or
+relabeled as results from the merged software. The bundle's embedded handoff is
+also historical; this repository file is the updated handoff. Packaging changes
+affect host metadata/error handling only; no equations, convergence settings or
+archived numerical values changed, and no large simulations were rerun for merge.
+The merge-time preservation check recomputed SHA256 for all 535 existing files
+under `results/` and `benchmarks/evidence/`; every hash matched its pre-merge value.
 
 ## 1. Changes and reasons
 
@@ -55,17 +84,19 @@ availability/version records are in `baseline/environment.json`.
 | Reliability fixes retested | 91 passed, 1 skipped | `reliability_second.xml` |
 | Full suite including tiny-force guard | 107 passed, 1 skipped, 58.61 s | `final_guard_tests.xml` |
 | Post-overhead-change suite | 107 passed, 1 skipped, 58.15 s | `review_tests.xml` |
-| Final source, including pressure failure and missing-file regressions | 110 passed, 1 skipped, 40.55 s | `release_tests.xml` |
-| Final built wheel, outside checkout, CPU-only env | 46 passed, 9 skipped, 25.70 s | `installed_cpu_release_tests.xml` |
-| Final built wheel, outside checkout, actual GPU | 110 passed, 1 skipped, 39.34 s | `installed_gpu_release_tests.xml` |
+| Pre-portability source, including pressure failure and missing-file regressions | 110 passed, 1 skipped, 40.55 s | `release_tests.xml` |
+| Pre-portability built wheel, outside checkout, CPU-only env | 46 passed, 9 skipped, 25.70 s | `installed_cpu_release_tests.xml` |
+| Pre-portability built wheel, outside checkout, actual GPU | 110 passed, 1 skipped, 39.34 s | `installed_gpu_release_tests.xml` |
 
 The one real-GPU suite skip is an inapplicable z direction in 2D. CPU-only wheel
 skips do not qualify GPU behavior. Tests import the installed package from
 `/tmp/lbm-installed-cpu/lib/python3.14/site-packages`, not the checkout.
 GPU wheel tests import `/tmp/lbm-installed-gpu-release/lbm_permeability` with
 dependencies from the isolated workstation environment. Both installed copies'
-package source hashes match the final checkout; see `installed_*_release_source.json`.
-After the tensor campaign, the only package change was catching file-system
+package source hashes match the archived pre-portability snapshot, not the newer
+merged package; see `installed_*_release_source.json`.
+Between the accepted tensor snapshot and that archived wheel, the only package
+change was catching file-system
 `OSError` in the CLI so a missing input produces saved error metadata and exit 2.
 Numerical code is unchanged. `accepted_campaign_source.tar.gz` preserves the
 exact earlier package source for strict campaign-resume checks.
@@ -73,6 +104,29 @@ The first regression failures are retained: NVRTC could not include `stdint.h`
 (resolved with a checked 64-bit typedef); a high-force straight-channel fixture
 reached the Mach rejection rather than invalid density, so a porous instability
 fixture was used to exercise density failure. Tolerances were not relaxed.
+
+The final merged software has separate evidence in the repository directory
+`benchmarks/evidence/packaging-followup/` (not the historical evidence root):
+
+| Check | Actual result | Evidence in that directory |
+|---|---|---|
+| Focused missing-Git, memory and CLI regressions | 17 passed, 1.76 s | `focused_fixed.xml` |
+| Full source suite with actual GPU | 124 passed, 1 skipped, 43.25 s | `source_fixed.xml` |
+| Fresh installed wheel outside checkout, CPU-only env | 59 passed, 10 skipped, 25.36 s | `installed_cpu.xml`, `installed_source.json` |
+
+The final package's GPU coverage is from the source suite; a new GPU installed-wheel
+suite was not run after the portability changes. The installed CPU check verifies
+all 18 package files against the source and tests export/error handling with Git
+missing and `resource` unavailable. Linux/macOS RSS units were tested with simulated
+reports; native Windows/macOS execution was not performed. The initial portability
+collection failure and corrected reruns remain recorded in that directory.
+
+Before merging, the PR head was verified as exactly
+`84649088294e6b29dd186b98de8e60b141bdd81a`. Both hosted CPU `tests` check runs
+completed successfully: [PR run 35355909677](https://github.com/SalehMohammadrezaei/LBM-Permeability/actions/runs/35355909677)
+and [push run 35355904441](https://github.com/SalehMohammadrezaei/LBM-Permeability/actions/runs/35355904441).
+GitHub reported main unprotected, required-check contexts empty and no rulesets.
+The merge used method `merge` with the expected head SHA supplied to GitHub.
 
 ## 3. Completed verification and application evidence
 
@@ -196,7 +250,8 @@ GPU-only 2D pressure mode is experimental; float64 pressure is verified here.
 Float32 pressure has no comparable qualification campaign. NumPy is a reference
 implementation, not an optimized 96-core CPU solver. Python 3.14 was tested;
 the existing package declaration Python >=3.8 was retained but older versions
-were not tested. CPU CI was added but no hosted CI run is claimed.
+were not tested. Hosted CPU CI passed for the reviewed final head as recorded
+above; it does not certify GPU execution.
 
 The qualified float32-storage trial used its predeclared rtol=1e-5 and atol=1e-10;
 float64 used rtol=1e-6 and atol=1e-12. It is a storage-accuracy comparison against
@@ -253,11 +308,11 @@ Another same-size tensor can be budgeted at approximately 15–16 minutes under
 the measured conditions; a 500³ runtime is not responsibly estimated before its
 memory and precision requirements are resolved.
 
-The compact review artifact is `final/technical_evidence.tar.gz`: handoff, source
+The historical compact review artifact is `final/technical_evidence.tar.gz`: handoff, source
 snapshot, configurations, machine-readable results, histories, logs and plots.
 Large raw volumes and NPZ fields remain in the evidence directory and are excluded
 from this compact bundle; their checksums are in `final/excluded_binary_artifacts.json`.
-The tested wheel is included. `final/source_sha256.json` and
+The tested pre-portability wheel is included. `final/source_sha256.json` and
 `final/artifact_checksums.json` identify source and artifact contents; commit,
 working-tree status and tracked changes are also saved in `final/`.
 `followup_summary.json` records authorized follow-up costs without double charging
