@@ -1,0 +1,21 @@
+{
+  "recorded_before_campaign": "2026-09-18",
+  "simulation_budget_seconds": 1800,
+  "max_gpu_workers": 1,
+  "max_cpu_workers": 2,
+  "channel_finest_relative_error": 0.01,
+  "legacy_fine_channel_relative_error": 0.005,
+  "force_halving_relative_error": 0.01,
+  "force_reversal_relative_error": 0.01,
+  "tighter_convergence_relative_error": 0.001,
+  "tensor_reciprocity_error": 0.01,
+  "converged_backend_float64_relative_error": 0.001,
+  "fixed_step_float64_field_absolute_error": 2e-14,
+  "float32_storage_relative_error": 0.01,
+  "mach_max": 0.05,
+  "pore_reynolds_target": 0.1,
+  "periodic_mass_drift_float64": 1e-8,
+  "periodic_mass_drift_float32": 1e-4,
+  "pressure_flux_span_relative": 1e-4,
+  "notes": "Coarse and high-tau channels quantify error, not all must pass finest-resolution target. No rock accuracy target without matched reference metadata. Failures retained. Memory planning headroom 20% current free VRAM; disk budget 10 GiB."
+}

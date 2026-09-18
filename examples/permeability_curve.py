@@ -1,72 +1,39 @@
-"""Sweep porosity and plot the computed permeability against the Kozeny–Carman trend.
+"""Illustrative random-disk sweep; every outcome retained, optional fitted trend.
 
-Runs the D2Q9 solver on random grain packs of increasing solid fraction and shows
-that the measured permeability collapses onto the classic k ∝ φ³/(1−φ)² law — the
-headline result of pore-scale / digital-rock permeability prediction.
-
-    python examples/permeability_curve.py     ->  docs/permeability_vs_porosity.png
+Not an independent Kozeny-Carman validation or a statistical porosity law.
 """
-from __future__ import annotations
-
-import os
-import sys
-
+import argparse,sys,csv
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lbm_permeability import (
-    lbm_stokes, k_from_run, k_lu_to_m2, k_m2_to_millidarcy, geometry, HAS_GPU,
-)
-
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs")
-DX = 2.0e-6
-N = 300
+from lbm_permeability import geometry,lbm_stokes
+from lbm_permeability.io import save_result
 
 
 def main():
-    os.makedirs(OUT, exist_ok=True)
-    phis, ks = [], []
-    # More grains -> lower porosity. Kept to the range where the pore space still
-    # percolates under correct no-slip physics; denser packs pinch off (with the
-    # earlier wall-slip bug they leaked flow through near-closed throats and gave
-    # spuriously non-zero k). Packs that don't converge or pinch off are dropped.
-    for nd in (16, 20, 24, 28, 32, 36, 40):
-        blocked = geometry.random_disks(N, N, n_disks=nd, radius=22, seed=100 + nd)
-        phi = geometry.porosity(blocked)
-        res = lbm_stokes(blocked, F_x=1e-6, tau=1.0, n_steps_max=60000,
-                         conv_tol=1e-4, conv_window=400, use_gpu=HAS_GPU, verbose=False)
-        k_mD = k_m2_to_millidarcy(k_lu_to_m2(k_from_run(res, "x"), DX))
-        if res["step_converged"] >= 60000 or k_mD < 5:
-            print(f"φ={phi:.3f}  k={k_mD:9.1f} mD  (dropped)", flush=True)
-            continue
-        phis.append(phi); ks.append(k_mD)
-        print(f"φ={phi:.3f}  k={k_mD:9.1f} mD  (step {res['step_converged']})", flush=True)
-    phis = np.array(phis); ks = np.array(ks)
+    p=argparse.ArgumentParser();p.add_argument('--output',default='results/porosity-illustration');p.add_argument('--backend',default='numpy');p.add_argument('--size',type=int,default=32);p.add_argument('--steps',type=int,default=10000);a=p.parse_args()
+    out=Path(a.output);out.mkdir(parents=True,exist_ok=True);rows=[]
+    for nd in (3,5,7,9):
+        m=geometry.random_disks(a.size,a.size,nd,max(2,a.size/10),seed=100+nd)
+        r=lbm_stokes(m,F_x=1e-6,backend=a.backend,n_steps_max=a.steps,conv_tol=1e-6,conv_window=100,wall_timeout_s=30,verbose=False,return_fields=False)
+        save_result(out/f'disks_{nd}',r,dict(seed=100+nd,overlapping_disks=nd))
+        k=r['k_lu'];rows.append(dict(disks=nd,porosity=geometry.porosity(m),k_lu=k,status=r['termination_reason'],
+                                    fit_exclusion_reason='' if k is not None and k>0 else ('zero or nonpositive valid permeability' if r['valid_for_permeability'] else r['termination_reason'])))
+    with (out/'all_cases.csv').open('w',newline='') as f:
+        w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    fig,ax=plt.subplots()
+    valid=[r for r in rows if r['k_lu'] is not None]
+    if valid:ax.scatter([r['porosity'] for r in valid],[r['k_lu'] for r in valid],label='accepted individual masks')
+    positive=[r for r in valid if r['k_lu']>0]
+    if len(positive)>=2:
+        phi=np.array([r['porosity'] for r in positive]);k=np.array([r['k_lu'] for r in positive]);shape=phi**3/(1-phi)**2
+        coefficient=np.exp(np.mean(np.log(k/shape)));pp=np.linspace(phi.min(),phi.max(),100)
+        ax.plot(pp,coefficient*pp**3/(1-pp)**2,'--',label='fitted Kozeny-Carman shape (illustration)')
+    ax.set(xlabel='total porosity',ylabel='permeability (lattice cells squared)',title='Random overlapping disks; all statuses in CSV')
+    if valid:ax.legend()
+    fig.savefig(out/'illustration.png',dpi=150)
 
-    # Kozeny–Carman reference k = C·φ³/(1−φ)², C fit to the measured points (least squares in log)
-    kc_shape = phis ** 3 / (1 - phis) ** 2
-    C = np.exp(np.mean(np.log(ks) - np.log(kc_shape)))
-    pp = np.linspace(phis.min() - 0.02, phis.max() + 0.02, 100)
-    kc = C * pp ** 3 / (1 - pp) ** 2
-
-    plt.rcParams.update({"font.size": 11})
-    fig, ax = plt.subplots(figsize=(6.4, 4.6))
-    ax.plot(pp, kc, "--", color="#888", lw=1.8, label="Kozeny–Carman  $k\\propto\\phi^3/(1-\\phi)^2$")
-    ax.scatter(phis, ks, s=90, c=ks, cmap="viridis", edgecolor="#1a1a1a",
-               zorder=5, label="LBM (this solver)")
-    ax.set_yscale("log")
-    ax.set_xlabel("porosity  $\\phi$")
-    ax.set_ylabel("permeability  $k$  (mD)")
-    ax.set_title("Pore-scale permeability vs porosity\nLBM Stokes flow through random grain packs")
-    ax.grid(True, which="both", alpha=0.25)
-    ax.legend(frameon=False, loc="upper left")
-    fig.tight_layout()
-    fig.savefig(os.path.join(OUT, "permeability_vs_porosity.png"), dpi=200, bbox_inches="tight")
-    print(f"wrote {OUT}/permeability_vs_porosity.png")
-
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()

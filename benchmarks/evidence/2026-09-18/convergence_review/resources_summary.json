@@ -1,0 +1,9 @@
+{
+  "sample_count": 656,
+  "sampled_duration_s": 3322.542468075,
+  "max_device_memory_used_MiB": 15819.0,
+  "min_device_memory_free_MiB": 29592.0,
+  "max_device_utilization_percent": 100.0,
+  "min_host_available_bytes": 337011929088,
+  "note": "Device-wide samples include concurrent processes; these are not exact per-case physical peaks."
+}

@@ -26,3 +26,18 @@ env/
 .DS_Store
 .idea/
 .vscode/
+
+# Local evidence, large outputs and archives; curated records live in benchmarks/evidence.
+/results/
+*.npz
+*.tar.gz
+*.whl
+.cupy/
+.cache/
+.env
+.env.*
+*.pem
+*.key
+
+# Tiny deterministic reproduction fixture, not a downloaded rock volume.
+!benchmarks/configs/open_channel.npy

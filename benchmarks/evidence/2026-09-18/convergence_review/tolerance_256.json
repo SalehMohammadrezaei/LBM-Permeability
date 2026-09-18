@@ -1,0 +1,20 @@
+{
+  "valid_pair": true,
+  "column_relative_error": 8.643884871528827e-06,
+  "threshold": 0.001,
+  "passed": true,
+  "raw_columns": [
+    [
+      0.1462374612185328,
+      0.006195548713060208,
+      0.00884910148235766
+    ],
+    [
+      0.14623619447747266,
+      0.006195540384056831,
+      0.008849058635006337
+    ]
+  ],
+  "charged_seconds": 905.6525105199835,
+  "note": "independent rest starts; relative and absolute tolerances both tightened 100-fold"
+}

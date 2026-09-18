@@ -1,0 +1,18 @@
+{
+  "dataset_manifest": "results/2026-09-18-pilot/dataset/dataset_manifest.json",
+  "mask": "results/2026-09-18-pilot/dataset/blocked_256.npy",
+  "expected_mask_sha256": "87101acbbc5ca991a57e02f132358ddb53d783890bb481e3599a6cdcf4d0e593",
+  "crop_bounds_zyx_half_open": [[0,256],[0,256],[0,256]],
+  "voxel_size_m": 0.000005,
+  "forces": [0.000001,0.0000005],
+  "settings": {
+    "backend": "cuda", "precision": "float64", "tau": 1.0,
+    "n_steps_max": 30000, "wall_timeout_s": 600,
+    "conv_tol": 0.000001, "conv_atol": 1e-12, "conv_window": 100,
+    "stability_every": 50, "consecutive": 3,
+    "characteristic_length": 20.0, "return_fields": false,
+    "verbose": true, "heartbeat": 1000
+  },
+  "additional_simulation_budget_seconds": 3600,
+  "execution": "sequential x,y,z loads at each force, independent rest initializations; no 500-cubed run"
+}

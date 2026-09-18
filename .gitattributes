@@ -1,0 +1,6 @@
+# Preserve byte-identical executed evidence, including CSV CRLF and traceback text.
+benchmarks/evidence/** -text linguist-generated=true
+benchmarks/evidence/**/*.csv whitespace=cr-at-eol
+benchmarks/evidence/**/*.xml whitespace=-blank-at-eol
+# Blank patch context lines contain a required single space.
+docs/provenance/original_pressure_walls.patch -text whitespace=-blank-at-eol

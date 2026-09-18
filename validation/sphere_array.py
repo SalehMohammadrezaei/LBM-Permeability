@@ -3,7 +3,7 @@ pore-scale LBM codes: slow flow through a **simple-cubic array of spheres**.
 
 A single solid sphere (radius ``a``) centred in a periodic cubic cell of side
 ``L`` is a simple-cubic lattice of spheres at solid fraction ``c = (4/3)pi a^3 / L^3``.
-Its Stokes permeability is known semi-analytically (Hasimoto 1959; Sangani &
+Legacy series comparison, with unverified averaging normalization (see docs/reference_scope.md). Its Stokes permeability is treated semi-analytically (Hasimoto 1959; Sangani &
 Acrivos 1982):
 
     K(c) = F / (6 pi mu a U)                      (normalised drag)
@@ -42,7 +42,7 @@ def sangani_acrivos_sc(c: float):
 
 def sc_sphere(L: int, a: float) -> np.ndarray:
     """Periodic cubic cell of side L with one centred solid sphere (True=solid)."""
-    zz, yy, xx = np.mgrid[0:L, 0:L, 0:L]
+    zz, yy, xx = np.ogrid[0:L, 0:L, 0:L]
     c0 = (L - 1) / 2.0
     return (zz - c0) ** 2 + (yy - c0) ** 2 + (xx - c0) ** 2 <= a * a
 
@@ -62,15 +62,11 @@ def run_case(L, a, n_steps_max=80000, conv_tol=1e-4):
                 rel=abs(ka2_lbm - ka2_ref) / ka2_ref)
 
 
-def main(cases=((48, 11), (41, 11), (37, 11))):
-    print(f"Simple-cubic sphere array benchmark, backend={'GPU' if HAS_GPU else 'CPU'}")
-    print(f"{'L':>4} {'a_eff':>6} {'c':>7} {'k/a^2 LBM':>11} {'k/a^2 S&A':>11} {'rel.err':>8} {'conv@':>7}")
-    print("-" * 60)
-    for L, a in cases:
-        r = run_case(L, a)
-        print(f"{r['L']:>4} {r['a_eff']:>6.2f} {r['c']:>7.4f} {r['ka2_lbm']:>11.4f} "
-              f"{r['ka2_ref']:>11.4f} {r['rel']:>7.2%} {r['step']:>7d}", flush=True)
+def main():
+    from benchmarks.run_cases import cases, run
+    from pathlib import Path
+    root=Path("results/sphere-validation")
+    for case in cases():
+        if case['id'].startswith('sphere_'): run(case,root,120)
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()

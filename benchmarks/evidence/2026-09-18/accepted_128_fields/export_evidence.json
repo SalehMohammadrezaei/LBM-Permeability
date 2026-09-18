@@ -1,0 +1,8 @@
+{
+  "solver_wall_s": 19.224200618016766,
+  "file_export_wall_s": 0.9405653050052933,
+  "relative_k_change_vs_prior": 0.0,
+  "history_exactly_equal": true,
+  "charged_seconds": 19.224200618016766,
+  "accepted": true
+}
