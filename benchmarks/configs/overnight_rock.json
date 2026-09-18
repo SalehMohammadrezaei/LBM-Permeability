@@ -1,0 +1,18 @@
+{
+  "dataset": "/home/impres/Saleh/lbm-permeability/results/2026-09-18-pilot/dataset/Seg_Oxyz_0001_0001_0001.raw",
+  "dataset_sha256": "42bf2c7b771333d1a640afb7b5967b25cd04c78504f9648e457b75749ebe1b2a",
+  "dataset_shape": [500,500,500],
+  "voxel_size_m": 0.000005,
+  "candidates": [[[50,450],[50,450],[50,450]],[[58,442],[58,442],[58,442]],[[90,410],[90,410],[90,410]]],
+  "pilot_sizes": [64,128,256],
+  "force": 0.000001,
+  "max_steps": 100000,
+  "cpu_cores": 16,
+  "disk_budget_gib": 50,
+  "settings": {
+    "backend": "cuda", "precision": "float64", "tau": 1.0,
+    "conv_tol": 0.000001, "conv_atol": 1e-12, "conv_window": 100,
+    "stability_every": 50, "consecutive": 3, "min_steps": 300,
+    "mass_tol": 1e-8, "max_mach": 0.05, "characteristic_length": 20
+  }
+}
