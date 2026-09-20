@@ -17,6 +17,7 @@ def main(argv=None):
     p.add_argument('--backend',choices=['auto','numpy','cupy-array','cuda'],default='auto')
     p.add_argument('--no-gpu',action='store_true');p.add_argument('--precision',choices=['float64','float32'],default='float64')
     p.add_argument('--F',type=float,default=1e-6);p.add_argument('--tau',type=float,default=1.)
+    p.add_argument('--collision',choices=['bgk','trt'],default='bgk');p.add_argument('--magic',type=float)
     p.add_argument('--steps',type=int,default=20000);p.add_argument('--tol',type=float,default=1e-6)
     p.add_argument('--check-every',type=int,default=100);p.add_argument('--timeout',type=float,default=60)
     p.add_argument('--dx',type=float,required=True);p.add_argument('--output',default='lbm-output')
@@ -33,7 +34,7 @@ def main(argv=None):
             image=np.load(a.mask_npy,allow_pickle=False)
             if (a.solid_value is None)!=(a.pore_value is None):raise ValueError('supply both binary labels')
             b=mask(image) if a.solid_value is None else decode_mask(image,solid_value=a.solid_value,pore_value=a.pore_value)
-        settings=dict(backend='numpy' if a.no_gpu else a.backend,precision=a.precision,tau=a.tau,
+        settings=dict(backend='numpy' if a.no_gpu else a.backend,precision=a.precision,tau=a.tau,collision=a.collision,magic=a.magic,
                       n_steps_max=a.steps,conv_tol=a.tol,conv_window=a.check_every,
                       wall_timeout_s=a.timeout,return_fields=a.fields,verbose=False)
         if a.tensor:

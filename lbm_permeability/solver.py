@@ -33,7 +33,8 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
              conv_window=200, backend='auto', precision='float64', return_fields=True,
              verbose=True, heartbeat=1000, wall_timeout_s=None, stability_every=50,
              conv_atol=1e-12, consecutive=3, mass_tol=None, max_mach=.05,
-             characteristic_length=1., min_steps=None, mempool_flush=2000):
+             characteristic_length=1., min_steps=None, mempool_flush=2000,
+             collision='bgk', magic=None):
     started=time.perf_counter()
     blocked=v.mask(blocked,len(force))
     v.parameters(tau,force,n_steps_max,conv_tol,conv_window,precision,wall_timeout_s,
@@ -42,12 +43,22 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     v.positive('characteristic_length',characteristic_length)
     min_steps=conv_window*consecutive if min_steps is None else v.integer('min_steps',min_steps)
     mass_tol=(1e-8 if precision=='float64' else 1e-4) if mass_tol is None else v.positive('mass_tol',mass_tol)
+    if collision not in ('bgk','trt'):
+        raise ValueError("collision must be 'bgk' or 'trt'")
+    if collision=='bgk':
+        if magic is not None: raise ValueError('magic applies to the trt collision only')
+    else:
+        magic=v.positive('magic',3/16 if magic is None else magic)
+    # TRT: the symmetric rate sets the viscosity, the antisymmetric rate follows
+    # from magic=(1/w_plus-1/2)(1/w_minus-1/2); 3/16 fixes the bounce-back wall half-way.
+    om_p=1/tau
+    om_m=1/(.5+magic/(tau-.5)) if collision=='trt' else om_p
     backend,xp=select(backend)
     if backend != 'cuda' and precision != 'float64':
         raise ValueError('array reference backends support float64 only; use cuda for float32 storage')
     nu=(tau-.5)/3
     ndim=blocked.ndim
-    base=dict(nu=nu,backend=backend,precision=precision,storage_dtype=precision,compute_dtype='float64',
+    base=dict(nu=nu,collision=collision,magic=magic,omega_plus=om_p,omega_minus=om_m,backend=backend,precision=precision,storage_dtype=precision,compute_dtype='float64',
               diagnostic_dtype='float64',boundary_conditions='periodic in every array axis',
               array_axes=list('yx' if ndim==2 else 'zyx'),components=list('xyz'[:ndim]),
               shape=list(blocked.shape),porosity=float((~blocked).mean()),
@@ -56,7 +67,8 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                             conv_atol=conv_atol,conv_window=conv_window,consecutive=consecutive,
                             stability_every=stability_every,wall_timeout_s=wall_timeout_s,
                             min_steps=min_steps,mass_tol=mass_tol,max_mach=max_mach,
-                            characteristic_length=characteristic_length),
+                            characteristic_length=characteristic_length,
+                            collision=collision,magic=magic),
               compiler_options=[] if backend=='cuda' else None)
     base.update({f'F_{c}':float(F) for c,F in zip('xyz',force)})
     special='all_solid' if blocked.all() else ('zero_forcing' if not np.any(force) else ('fully_fluid_periodic' if not blocked.any() else None))
@@ -75,6 +87,8 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     if force_scale < np.finfo(precision).eps:
         raise ValueError('force is below population storage roundoff; increase it or use float64 (above this guard accuracy still needs verification)')
     c,w,pairs=lattice(ndim)
+    opp=list(range(len(w)))
+    for a,b in pairs: opp[a],opp[b]=b,a
     bd=xp.asarray(blocked); fluid=~bd
     f=xp.empty((len(w),)+blocked.shape,dtype=precision)
     for q in range(len(w)): f[q]=w[q]
@@ -85,10 +99,11 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
         else:
             from .d3q19_fast import _module
         mod=_module(precision)
-        collide,stream=mod.get_function('collide'),mod.get_function('stream')
+        collide,stream=mod.get_function('collide_trt' if collision=='trt' else 'collide'),mod.get_function('stream')
         fb=xp.empty_like(f); solid=xp.asarray(blocked,dtype=xp.uint8)
         blocks=((blocked.size+255)//256,)
         args_c=(solid,np.int64(blocked.size),*(np.float64(a) for a in force),np.float64(tau),np.float64(1-.5/tau))
+        if collision=='trt': args_c += (np.float64(om_m),np.float64(1-.5*om_m))
         args_s=(solid,*(np.int32(n) for n in blocked.shape[::-1]))
     if xp is not np: xp.cuda.get_current_stream().synchronize()
     setup_s=time.perf_counter()-started
@@ -114,7 +129,18 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                 cf=sum(int(cc[q])*F for cc,F in zip(c,force))
                 eq=w[q]*rho*(1+3*cu+4.5*cu*cu-1.5*u2)
                 source=w[q]*(1-.5/tau)*(3*cf+9*cu*cf-3*uf)
-                f[q] += (-(f[q]-eq)/tau+source)*fluid
+                if collision=='bgk':
+                    f[q] += (-(f[q]-eq)/tau+source)*fluid
+                    continue
+                if q>opp[q]: continue
+                # even/odd parts of the pair (q, opposite q); q==0 is its own opposite
+                a,b=f[q],f[opp[q]]
+                even=om_p*(.5*(a+b)-w[q]*rho*(1+4.5*cu*cu-1.5*u2))-(1-.5*om_p)*w[q]*(9*cu*cf-3*uf)
+                odd=om_m*(.5*(a-b)-w[q]*rho*3*cu)-(1-.5*om_m)*w[q]*3*cf
+                if q==opp[q]:
+                    f[q] -= even*fluid
+                else:
+                    f[q],f[opp[q]]=a-(even+odd)*fluid,b-(even-odd)*fluid
             for q in range(len(w)):
                 f[q]=xp.roll(f[q],tuple(int(cc[q]) for cc in c[::-1]),axis=tuple(range(ndim)))
             for a,b in pairs:

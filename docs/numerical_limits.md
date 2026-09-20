@@ -2,8 +2,9 @@
 
 ## Model and boundary staging
 
-The solver uses D2Q9 or D3Q19, BGK collision, the quadratic low-Mach equilibrium,
-and Guo forcing. It approximates creeping flow only in a sufficiently weak-driving
+The solver uses D2Q9 or D3Q19, the quadratic low-Mach equilibrium and Guo forcing,
+with either BGK collision (`collision='bgk'`, the default, unchanged) or the
+two-relaxation-time collision (`collision='trt'`). It approximates creeping flow only in a sufficiently weak-driving
 regime. It is not an inertia-free Stokes discretization. Distributions initialize
 at rho=1 and equilibrium at rest. The initial reported velocity includes the
 Guo half-force correction.
@@ -14,8 +15,13 @@ entering a solid is returned on the subsequent streaming step. This is solid-nod
 reflection with a storage delay, rather than a newly implemented link-wise reflection.
 For the tested steady axis-aligned channels the continuum comparison places walls
 half a cell outside the outermost fluid centres, so h is the number of fluid rows.
-The finite-grid permeability has tau-dependent error; no universal optimal tau is
-claimed. Sloping and curved voxel surfaces need their own resolution studies.
+With BGK the finite-grid permeability has tau-dependent error and no universal
+optimal tau is claimed. With TRT the symmetric rate `1/tau` sets the viscosity and
+the antisymmetric rate follows from `magic=(tau-1/2)(1/omega_minus-1/2)`. The default
+`magic=3/16` places the wall exactly half-way for an axis-aligned channel at every
+tau: each node carries the analytical parabola, and the volume-averaged permeability
+is `(h**3/12+h/24)/Ny`, where `h/24` is midpoint quadrature of an exact profile
+(`tests/test_trt.py`). Setting `magic=(tau-1/2)**2` recovers BGK. Sloping and curved voxel surfaces need their own resolution studies.
 
 ## Force, averaging, coordinates, units
 
