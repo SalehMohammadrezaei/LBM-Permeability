@@ -43,9 +43,10 @@ def run(out, name, reference, fn, **meta):
 
 
 def solve(blocked, axis, tau, collision, tol, **kw):
-    force = [0., 0., 0.][:blocked.ndim]; force[axis] = force_for(tau)
+    force = [0., 0., 0.][:blocked.ndim]; force[axis] = force_for(tau) * kw.pop('force_scale', 1.)
     common = dict(tau=tau, collision=collision, verbose=False, conv_tol=tol, conv_window=200,
-                  n_steps_max=kw.pop('steps', 2000000), wall_timeout_s=kw.pop('timeout', 3600), return_fields=False)
+                  n_steps_max=kw.pop('steps', 2000000), wall_timeout_s=kw.pop('timeout', 3600), return_fields=False,
+                  characteristic_length=kw.pop('length', 1.))
     if blocked.ndim == 2:
         r = lbm_stokes_2d_fast(blocked, F_x=force[0], F_y=force[1], **common)
     else:
@@ -53,7 +54,8 @@ def solve(blocked, axis, tau, collision, tol, **kw):
     u = r[f"u_{'xyz'[axis]}_mean_total"]
     return dict(k=r['nu'] * u / force[axis], accepted=r['valid_for_permeability'], reason=r['termination_reason'],
                 iterations=r['iterations'], shape=list(blocked.shape), porosity=r['porosity'],
-                mach_max=r['diagnostics'].get('mach_max'), elapsed_s=r['elapsed_s'])
+                mach_max=r['diagnostics'].get('mach_max'), reynolds_pore=r['diagnostics'].get('reynolds_pore'),
+                force=force[axis], elapsed_s=r['elapsed_s'])
 
 
 def channel(out, tol):
@@ -83,7 +85,8 @@ def spheres(out, tol):
                 taus = TAUS if (n == 64 and fraction in (0.216, 0.45)) else (1.0,)
                 for tau in taus:
                     run(out, f'sc_c{fraction}_n{n}_{collision}_tau{tau}', reference,
-                        lambda: solve(m, 0, tau, collision, tol), group='spheres', n=n, solid_fraction=fraction,
+                        # Re grows as F L^3 at fixed geometry: hold it near 0.02 so the flow stays creeping
+                        lambda: solve(m, 0, tau, collision, tol, force_scale=.1 * (32 / n) ** 3, length=n), group='spheres', n=n, solid_fraction=fraction,
                         voxel_solid_fraction=float(m.mean()), radius_lu=a, tau=tau, collision=collision,
                         reference_source='Zick & Homsy (1982) simple cubic: k = L^3/(6 pi a K)', drag_coefficient=drag)
 
@@ -129,7 +132,7 @@ def pipes(out, tol, folder):
             m = np.broadcast_to(~pore, (4,) + pore.shape).copy()      # flow along array axis 0 = component z
             reference = pore.mean() * mean_factor(area, size)
             for collision in ('bgk', 'trt'):
-                run(out, f'pipe_{shape}_{size}_{collision}', reference, lambda: solve(m, 2, 1.0, collision, tol),
+                run(out, f'pipe_{shape}_{size}_{collision}', reference, lambda: solve(m, 2, 1.0, collision, tol, force_scale=1e-2),
                     group='pipes', shape_name=shape, nominal_size=size, pore_area_voxels=area, collision=collision,
                     reference_source='analytical mean velocity of the cross-section with the voxel-counted area',
                     source='Saxena et al. (2017) Mendeley Data 4g723tr5v3 v2, CC BY 4.0')
