@@ -48,12 +48,15 @@ run = lbm_stokes(blocked, F_x=1e-6, backend="numpy", verbose=False)
 k_lu = k_from_run(run, "x")  # rejects invalid or unconverged runs
 ```
 
-`backend` can be `numpy`, `cupy-array`, `cuda`, `cuda-sparse`, or `auto`. The array
+`backend` can be `numpy`, `cupy-array`, `cuda`, `cuda-sparse`, `numba-sparse`, or `auto`. The array
 paths use float64; CUDA offers float32 or float64 storage with double collision
 arithmetic. `cuda-sparse` (3D) stores pore voxels only, with a neighbour table,
 half-way bounce-back and in-place streaming; memory and work scale with porosity,
 and populations are kept as deviations from rest so float32 storage resolves weak
 flow. Its steady states match `cuda` (`tests/test_sparse.py`).
+`numba-sparse` is the same algorithm on CPU cores (`pip install '.[cpu]'`); it uses
+`NUMBA_NUM_THREADS` threads, 16 at most by default, and agrees with `cuda-sparse`
+to round-off (`tests/test_sparse_cpu.py`).
 
 `collision` is `bgk` (default) or `trt`. BGK with bounce-back places the wall at a
 tau-dependent position, so permeability drifts with tau. TRT with `magic=3/16`

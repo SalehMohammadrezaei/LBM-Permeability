@@ -54,10 +54,10 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     om_p=1/tau
     om_m=1/(.5+magic/(tau-.5)) if collision=='trt' else om_p
     backend,xp=select(backend)
-    sparse=backend=='cuda-sparse'
+    sparse=backend in ('cuda-sparse','numba-sparse')
     if sparse and blocked.ndim!=3:
-        raise ValueError('cuda-sparse stores D3Q19 pore nodes; use cuda for 2D masks')
-    if backend not in ('cuda','cuda-sparse') and precision != 'float64':
+        raise ValueError('sparse backends store D3Q19 pore nodes; use cuda or numpy for 2D masks')
+    if backend not in ('cuda','cuda-sparse','numba-sparse') and precision != 'float64':
         raise ValueError('array reference backends support float64 only; use cuda for float32 storage')
     nu=(tau-.5)/3
     ndim=blocked.ndim
@@ -94,8 +94,11 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     for a,b in pairs: opp[a],opp[b]=b,a
     peak_pool=0;share=None
     if sparse:
-        from .d3q19_sparse import SparseD3Q19
-        state=SparseD3Q19(blocked,force,om_p,om_m,precision)
+        if backend=='cuda-sparse':
+            from .d3q19_sparse import SparseD3Q19 as Sparse
+        else:
+            from .d3q19_sparse_cpu import SparseD3Q19CPU as Sparse
+        state=Sparse(blocked,force,om_p,om_m,precision)
         f=state.f;fluid=slice(None);share=base['porosity']
         look=lambda:state.macros()
     else:

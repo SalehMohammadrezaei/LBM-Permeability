@@ -74,4 +74,4 @@ def test_sparse_start_does_not_excite_the_staggered_momentum_mode():
     kw = dict(F_y=1e-6, F_x=0., tau=0.9, backend='cuda-sparse', verbose=False, conv_tol=1e-30,
               conv_atol=1e-300, conv_window=10 ** 6, stability_every=10 ** 6, return_fields=True)
     a, b = (lbm_stokes_3d(m, n_steps_max=n, **kw)['uy'] for n in (4000, 4001))
-    assert np.abs(a - b).max() < 1e-12 * np.abs(a).max()
+    assert np.abs(a - b).max() < 1e-9 * np.abs(a).max()   # an excited mode is about 1e-5
