@@ -64,7 +64,7 @@ def channel(out, tol):
             for tau in (TAUS if gap in (8, 32) else (1.0,)):
                 run(out, f'channel_gap{gap}_{collision}_tau{tau}', gap ** 3 / 12 / ny,
                     lambda: solve(m, 0, tau, collision, tol), group='channel', gap=gap, tau=tau, collision=collision,
-                    reference='continuum gap^3/(12 Ny), wall half a cell outside the last fluid node',
+                    reference_source='continuum gap^3/(12 Ny), wall half a cell outside the last fluid node',
                     nodal_reference_k_lu=(gap ** 3 / 12 + gap / 24) / ny)
 
 
@@ -85,7 +85,7 @@ def spheres(out, tol):
                     run(out, f'sc_c{fraction}_n{n}_{collision}_tau{tau}', reference,
                         lambda: solve(m, 0, tau, collision, tol), group='spheres', n=n, solid_fraction=fraction,
                         voxel_solid_fraction=float(m.mean()), radius_lu=a, tau=tau, collision=collision,
-                        reference='Zick & Homsy (1982) simple cubic: k = L^3/(6 pi a K)', drag_coefficient=drag)
+                        reference_source='Zick & Homsy (1982) simple cubic: k = L^3/(6 pi a K)', drag_coefficient=drag)
 
 
 def slit(out, tol):
@@ -131,7 +131,7 @@ def pipes(out, tol, folder):
             for collision in ('bgk', 'trt'):
                 run(out, f'pipe_{shape}_{size}_{collision}', reference, lambda: solve(m, 2, 1.0, collision, tol),
                     group='pipes', shape_name=shape, nominal_size=size, pore_area_voxels=area, collision=collision,
-                    reference='analytical mean velocity of the cross-section with the voxel-counted area',
+                    reference_source='analytical mean velocity of the cross-section with the voxel-counted area',
                     source='Saxena et al. (2017) Mendeley Data 4g723tr5v3 v2, CC BY 4.0')
 
 
