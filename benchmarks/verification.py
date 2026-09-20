@@ -5,6 +5,7 @@ Groups (select with --groups):
   spheres   simple-cubic sphere array against Zick & Homsy (1982) drag coefficients
   slit      inclined periodic slit: the tensor must recover the slit direction
   pipes     straight pipes of Saxena et al. (2017): circle, square, triangle cross-sections
+  wagner    thin micromodel cell with one cylinder, Wagner et al. (2021) Table 3
 
 Every case is written to its own JSON file and skipped when that file exists.
 """
@@ -134,6 +135,36 @@ def pipes(out, tol, folder):
                     source='Saxena et al. (2017) Mendeley Data 4g723tr5v3 v2, CC BY 4.0')
 
 
+# Wagner et al., Transp. Porous Media 138 (2021) Table 3: k in 1e-11 m^2 for cylinder radius in mm,
+# unit cell 1 mm x 1 mm, depth 0.091 mm between no-slip plates.
+WAGNER = {0.35: dict(fem=25.7, lbm=26.7, sph=22.9, hom3d=25.8), 0.40: dict(fem=17.7, lbm=17.7, sph=16.4, hom3d=17.4),
+          0.45: dict(fem=7.54, lbm=8.11, sph=8.59, hom3d=8.14), 0.47: dict(fem=3.62, lbm=3.86, sph=5.35, hom3d=3.97),
+          0.49: dict(fem=0.46, lbm=0.54, sph=None, hom3d=0.47)}
+
+
+def wagner(out, tol):
+    for depth in (16, 32, 91):                       # fluid nodes across the 0.091 mm depth; 91 is exact at 1 um
+        dx = 0.091e-3 / depth
+        n = round(1e-3 / dx)
+        y, x = (np.mgrid[0:n, 0:n] + .5) * (1e-3 / n) - .5e-3
+        for radius, published in WAGNER.items():
+            if depth == 91 and radius not in (0.40, 0.49):
+                continue
+            section = x * x + y * y <= (radius * 1e-3) ** 2
+            m = np.broadcast_to(section, (depth + 1, n, n)).copy()
+            m[0] = True                               # one solid layer closes both plates through periodicity
+            for collision in ('bgk', 'trt'):
+                def cell():
+                    r = solve(m, 0, 1.0, collision, tol)
+                    # published k averages over the cell between the plates, not over the wall layer
+                    r['k_m2'] = r['k'] * (depth + 1) / depth * (1e-3 / n) ** 2
+                    r['k_1e-11_m2'] = r['k_m2'] / 1e-11
+                    return r
+                run(out, f'wagner_r{radius}_d{depth}_{collision}', None, cell, group='wagner', radius_mm=radius,
+                    depth_nodes=depth, cell_nodes=n, collision=collision, published_1e11_m2=published,
+                    note='cell edge is n*dx; for depth 16 and 32 it differs from 1 mm by under 0.2 %')
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--output', required=True); p.add_argument('--groups', nargs='+', default=['channel', 'spheres', 'slit'])
@@ -143,4 +174,4 @@ if __name__ == '__main__':
     commit = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     (out / 'provenance.json').write_text(json.dumps(dict(source_commit=commit, started=time.strftime('%F %T'), tol=a.tol)))
     for g in a.groups:
-        {'channel': channel, 'spheres': spheres, 'slit': slit}.get(g, lambda o, t: pipes(o, t, a.saxena))(out, a.tol)
+        {'channel': channel, 'spheres': spheres, 'slit': slit, 'wagner': wagner}.get(g, lambda o, t: pipes(o, t, a.saxena))(out, a.tol)
