@@ -6,6 +6,7 @@ class Monitor:
     def __init__(self, xp, tol, atol, consecutive, mass_tol, periodic=True, pore_fraction=None):
         # pore_fraction: fields hold fluid nodes only; rescale their means to the total volume
         self.pore_fraction = pore_fraction
+        self.mass_offset = 0.   # rest mass when populations are stored as deviations
         self.xp, self.tol, self.atol = xp, tol, atol
         self.required, self.mass_tol, self.periodic = consecutive, mass_tol, periodic
         self.previous = None
@@ -22,7 +23,7 @@ class Monitor:
             return 'invalid_density', {'iterations': step, 'finite_state': True, 'rho_min': float(rho[fluid].min()), 'reason': 'nonpositive fluid density'}
         if not all(bool(xp.isfinite(u).all()) for u in fields):
             return 'nonfinite', {'iterations': step, 'finite_state': False, 'reason': 'nonfinite populations or macroscopic fields'}
-        mass = float(f.sum(dtype=xp.float64))
+        mass = float(f.sum(dtype=xp.float64)) + self.mass_offset
         if self.initial_mass is None:
             self.initial_mass = mass
         share = 1. if self.pore_fraction is None else self.pore_fraction

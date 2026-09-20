@@ -4,7 +4,8 @@ Only fluid nodes are stored.  A neighbour table gives, for every fluid node and
 direction q, the compact index of the node at x - c_q; a negative entry marks a
 solid neighbour, where half-way bounce-back returns the node's own opposite
 post-collision population.  Solid voxels cost no memory and no GPU threads, and
-the kernel needs no coordinate arithmetic.  Steady states agree with the dense
+the kernel needs no coordinate arithmetic.  Populations are stored as deviations
+f_q - w_q, so float32 storage keeps the small flow signal.  Steady states agree with the dense
 solid-node reflection, which delivers the same population one step later.
 """
 from __future__ import annotations
@@ -24,11 +25,11 @@ def _src(real):
     ww = ",".join(repr(float(v)) for v in W)
     pull = f"""
     double fq[19];
-    fq[0] = (double)fc[i];
+    fq[0] = Wc[0] + (double)fc[i];
     #pragma unroll
     for (int q = 1; q < 19; q++) {{
         int n = nbr[(int64_t)(q - 1) * M + i];
-        fq[q] = n < 0 ? (double)fc[(int64_t)OPPc[q] * M + i] : (double)fc[(int64_t)q * M + n];
+        fq[q] = Wc[q] + (n < 0 ? (double)fc[(int64_t)OPPc[q] * M + i] : (double)fc[(int64_t)q * M + n]);
     }}
     double rho = 0.0;
     #pragma unroll
@@ -64,7 +65,7 @@ void step(const {real}* __restrict__ fc, {real}* __restrict__ fo,
         double fb = fq[OPPc[q]];
         double even = om_p*(0.5*(fq[q]+fb) - Wc[q]*rho*(1.0 + 4.5*cu*cu - 1.5*u2)) - hit_p*Wc[q]*(9.0*cu*cF - 3.0*uF);
         double odd  = om_m*(0.5*(fq[q]-fb) - Wc[q]*rho*3.0*cu) - hit_m*Wc[q]*3.0*cF;
-        fo[(int64_t)q * M + i] = ({real})(fq[q] - even - odd);
+        fo[(int64_t)q * M + i] = ({real})((fq[q] - Wc[q]) - even - odd);
     }}
 }}
 
@@ -115,8 +116,10 @@ def neighbour_table(blocked):
 class SparseD3Q19:
     def __init__(self, blocked, force, om_p, om_m, precision):
         self.shape = blocked.shape
-        self.nbr, self.index = neighbour_table(blocked)
+        self.nbr, index = neighbour_table(blocked)
+        self.index = cp.asnumpy(index)     # host copy: only field export needs it
         self.count = int(self.index.size)
+        del index
         cp.get_default_memory_pool().free_all_blocks()
         self.f = cp.empty((19, self.count), dtype=precision)
         # Half-way bounce-back conserves the staggered momentum S=sum((-1)**x_a j_a) up to
@@ -126,7 +129,7 @@ class SparseD3Q19:
         # F*D/(2M).  Raw momentum +F/2 per node is the fixed point S=F*D/2, so the mode is
         # never excited; the first streamed state then reports u=(j+F/2)/rho=F.
         for q in range(19):
-            self.f[q] = W[q] * (1 + 1.5 * (int(CX[q]) * force[0] + int(CY[q]) * force[1] + int(CZ[q]) * force[2]))
+            self.f[q] = W[q] * (1.5 * (int(CX[q]) * force[0] + int(CY[q]) * force[1] + int(CZ[q]) * force[2]))   # deviation from w_q
         self.fb = cp.empty_like(self.f)
         mod = _module(precision)
         self._step, self._moments = mod.get_function('step'), mod.get_function('moments')
@@ -137,7 +140,7 @@ class SparseD3Q19:
 
     def bytes(self):
         return dict(populations=int(self.f.nbytes + self.fb.nbytes), neighbour_table=int(self.nbr.nbytes),
-                    moments=int(sum(a.nbytes for a in self.out)), fluid_index=int(self.index.nbytes))
+                    moments=int(sum(a.nbytes for a in self.out)), storage='deviation f_q-w_q')
 
     def step(self):
         self._step(self.blocks, (256,), (self.f, self.fb, self.nbr, np.int64(self.count)) + self.force + self.rates)
@@ -151,5 +154,5 @@ class SparseD3Q19:
 
     def dense(self, values):
         field = np.zeros(int(np.prod(self.shape)))
-        field[cp.asnumpy(self.index)] = cp.asnumpy(values)
+        field[self.index] = cp.asnumpy(values)
         return field.reshape(self.shape)

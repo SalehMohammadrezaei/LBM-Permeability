@@ -119,6 +119,7 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     setup_s=time.perf_counter()-started
     mon=Monitor(xp,conv_tol,conv_atol,consecutive,mass_tol,pore_fraction=share)
     mon.initial_mass=float(state.count if sparse else blocked.size)
+    if sparse: mon.mass_offset=float(state.count)
     fields,rho=look()
     mon.check(0,fields,rho,f,fluid,nu,characteristic_length)
     reason='max_steps'; iterations=0; diagnostics={}
@@ -169,7 +170,7 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                 if status and (status!='converged' or step>=min_steps):
                     reason=status; break
             else:
-                rho=f.sum(axis=0,dtype=xp.float64)
+                rho=f.sum(axis=0,dtype=xp.float64)+(1. if sparse else 0.)  # sparse stores f_q-w_q
                 if not bool(xp.isfinite(f).all()) or not bool(xp.isfinite(rho).all()):
                     reason='nonfinite'; break
                 if bool((rho[fluid]<=0).any()):

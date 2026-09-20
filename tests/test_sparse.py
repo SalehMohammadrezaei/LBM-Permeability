@@ -55,9 +55,11 @@ def test_sparse_tensor_workflow_and_float32_storage():
     t = compute_permeability_tensor(m, backend='cuda-sparse', tau=0.9, collision='trt', verbose=False,
                                     n_steps_max=60000, conv_tol=1e-9, conv_window=200)
     assert t['valid_for_permeability'] and t['reciprocity_error'] < 1e-3
-    r = lbm_stokes_3d(m, F_x=1e-5, tau=0.9, backend='cuda-sparse', precision='float32', verbose=False,
-                      n_steps_max=300, conv_window=100)
-    assert r['storage_dtype'] == 'float32' and np.isfinite(r['u_x_mean_total'])
+    runs = [lbm_stokes_3d(m, F_x=1e-6, tau=0.9, collision='trt', backend='cuda-sparse', precision=p, verbose=False,
+                          n_steps_max=60000, conv_tol=1e-9, conv_window=200) for p in ('float64', 'float32')]
+    assert runs[1]['storage_dtype'] == 'float32' and all(r['valid_for_permeability'] for r in runs)
+    # populations are stored as f_q-w_q, so single precision keeps the 1e-6 flow signal
+    assert abs(runs[0]['k_lu'] - runs[1]['k_lu']) < 1e-6 * runs[0]['k_lu']
 
 
 def test_sparse_is_three_dimensional_only():
