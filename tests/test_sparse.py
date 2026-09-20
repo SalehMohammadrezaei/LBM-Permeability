@@ -46,7 +46,7 @@ def test_sparse_trt_channel_is_exact_and_smaller():
     exact = (gap ** 3 / 12 + gap / 24) / ny
     assert abs(k_from_run(r, 'x') - exact) / exact < 1e-6
     stored = r['memory']['sparse_bytes']
-    assert stored['populations'] == 2 * 19 * 8 * (~m).sum()
+    assert stored["populations"] == 19 * 8 * (~m).sum()
     assert stored['neighbour_table'] == 18 * 4 * (~m).sum()
 
 

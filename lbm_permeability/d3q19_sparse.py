@@ -1,10 +1,10 @@
-"""CUDA D3Q19 on pore voxels only: indirect addressing, fused pull and collision.
+"""CUDA D3Q19 on pore voxels only: indirect addressing, in-place streaming.
 
 Only fluid nodes are stored.  A neighbour table gives, for every fluid node and
 direction q, the compact index of the node at x - c_q; a negative entry marks a
 solid neighbour, where half-way bounce-back returns the node's own opposite
-post-collision population.  Solid voxels cost no memory and no GPU threads, and
-the kernel needs no coordinate arithmetic.  Populations are stored as deviations
+post-collision population.  Solid voxels cost no memory and no GPU threads, the
+kernels need no coordinate arithmetic, and the AA pattern keeps one population array.  Populations are stored as deviations
 f_q - w_q, so float32 storage keeps the small flow signal.  Steady states agree with the dense
 solid-node reflection, which delivers the same population one step later.
 """
@@ -23,14 +23,25 @@ def _src(real):
     cz = ",".join(str(int(v)) for v in CZ)
     opp = ",".join(str(v) for v in _OPP)
     ww = ",".join(repr(float(v)) for v in W)
-    pull = f"""
+    # natural layout: slot q of node i holds the population that arrived along q
+    own = """
     double fq[19];
-    fq[0] = Wc[0] + (double)fc[i];
     #pragma unroll
-    for (int q = 1; q < 19; q++) {{
+    for (int q = 0; q < 19; q++) fq[q] = Wc[q] + (double)f[(int64_t)q * M + i];
+"""
+    # swapped layout (after an even step): the post-collision q of node n sits in slot opp(q) of n,
+    # so the population arriving along q comes from slot opp(q) of x-c_q, or, at a wall, from the
+    # node's own slot q (its post-collision opp(q), returned by half-way bounce-back)
+    pull = """
+    double fq[19];
+    fq[0] = Wc[0] + (double)f[i];
+    #pragma unroll
+    for (int q = 1; q < 19; q++) {
         int n = nbr[(int64_t)(q - 1) * M + i];
-        fq[q] = Wc[q] + (n < 0 ? (double)fc[(int64_t)OPPc[q] * M + i] : (double)fc[(int64_t)q * M + n]);
-    }}
+        fq[q] = Wc[q] + (n < 0 ? (double)f[(int64_t)q * M + i] : (double)f[(int64_t)OPPc[q] * M + n]);
+    }
+"""
+    moments = """
     double rho = 0.0;
     #pragma unroll
     for (int q = 0; q < 19; q++) rho += fq[q];
@@ -38,48 +49,79 @@ def _src(real):
     double uy = (fq[3]-fq[4]+fq[7]+fq[8]-fq[9]-fq[10]+fq[15]-fq[16]+fq[17]-fq[18] + 0.5*Fy)/rho;
     double uz = (fq[5]-fq[6]+fq[11]+fq[12]-fq[13]-fq[14]+fq[15]+fq[16]-fq[17]-fq[18] + 0.5*Fz)/rho;
 """
-    return f"""
-typedef long long int64_t;
-static_assert(sizeof(int64_t) == 8, "64-bit index ABI required");
-__device__ const int   CXc[19] = {{{cx}}};
-__device__ const int   CYc[19] = {{{cy}}};
-__device__ const int   CZc[19] = {{{cz}}};
-__device__ const int   OPPc[19] = {{{opp}}};
-__device__ const double Wc[19] = {{{ww}}};
-
-extern "C" __global__
-void step(const {real}* __restrict__ fc, {real}* __restrict__ fo,
-          const int* __restrict__ nbr, const int64_t M,
-          const double Fx, const double Fy, const double Fz,
-          const double om_p, const double hit_p, const double om_m, const double hit_m) {{
-    int64_t i = (int64_t)blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= M) return;
-{pull}
+    collide = """
     double u2 = ux*ux + uy*uy + uz*uz;
     double uF = ux*Fx + uy*Fy + uz*Fz;
+    double post[19];
     #pragma unroll
-    for (int q = 0; q < 19; q++) {{
+    for (int q = 0; q < 19; q++) {
         // even and odd parts of the pair (q, opposite q); equal rates are BGK
         double cu = CXc[q]*ux + CYc[q]*uy + CZc[q]*uz;
         double cF = CXc[q]*Fx + CYc[q]*Fy + CZc[q]*Fz;
         double fb = fq[OPPc[q]];
         double even = om_p*(0.5*(fq[q]+fb) - Wc[q]*rho*(1.0 + 4.5*cu*cu - 1.5*u2)) - hit_p*Wc[q]*(9.0*cu*cF - 3.0*uF);
         double odd  = om_m*(0.5*(fq[q]-fb) - Wc[q]*rho*3.0*cu) - hit_m*Wc[q]*3.0*cF;
-        fo[(int64_t)q * M + i] = ({real})((fq[q] - Wc[q]) - even - odd);
-    }}
-}}
-
-extern "C" __global__
-void moments(const {real}* __restrict__ fc, const int* __restrict__ nbr, const int64_t M,
-             const double Fx, const double Fy, const double Fz,
-             double* __restrict__ orho, double* __restrict__ oux,
-             double* __restrict__ ouy, double* __restrict__ ouz) {{
+        post[q] = (fq[q] - Wc[q]) - even - odd;
+    }
+"""
+    head = """(REAL* f, const int* __restrict__ nbr, const int64_t M,
+          const double Fx, const double Fy, const double Fz,
+          const double om_p, const double hit_p, const double om_m, const double hit_m) {
     int64_t i = (int64_t)blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= M) return;
-{pull}
-    orho[i] = rho; oux[i] = ux; ouy[i] = uy; ouz[i] = uz;
-}}
 """
+    code = """
+typedef long long int64_t;
+static_assert(sizeof(int64_t) == 8, "64-bit index ABI required");
+__device__ const int   CXc[19] = {CX};
+__device__ const int   CYc[19] = {CY};
+__device__ const int   CZc[19] = {CZ};
+__device__ const int   OPPc[19] = {OPP};
+__device__ const double Wc[19] = {WW};
+
+// In-place streaming (AA pattern): one population array.  The even step is local and leaves
+// the layout swapped; the odd step pulls, collides and pushes, restoring the natural layout.
+extern "C" __global__
+void even""" + head + own + moments + collide + """
+    #pragma unroll
+    for (int q = 0; q < 19; q++) f[(int64_t)OPPc[q] * M + i] = (REAL)post[q];
+}
+
+extern "C" __global__
+void odd""" + head + pull + moments + collide + """
+    f[i] = (REAL)post[0];
+    #pragma unroll
+    for (int q = 1; q < 19; q++) {
+        // x+c_q is the x-c of the opposite direction; a wall returns post[q] along opp(q)
+        int n = nbr[(int64_t)(OPPc[q] - 1) * M + i];
+        if (n < 0) f[(int64_t)OPPc[q] * M + i] = (REAL)post[q];
+        else       f[(int64_t)q * M + n] = (REAL)post[q];
+    }
+}
+
+extern "C" __global__
+void moments(const REAL* f, const int* __restrict__ nbr, const int64_t M, const int swapped,
+             const double Fx, const double Fy, const double Fz,
+             double* __restrict__ orho, double* __restrict__ oux,
+             double* __restrict__ ouy, double* __restrict__ ouz) {
+    int64_t i = (int64_t)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= M) return;
+    double fq[19];
+    fq[0] = Wc[0] + (double)f[i];
+    #pragma unroll
+    for (int q = 1; q < 19; q++) {
+        int n = nbr[(int64_t)(q - 1) * M + i];
+        fq[q] = Wc[q] + (!swapped ? (double)f[(int64_t)q * M + i]
+                        : (n < 0 ? (double)f[(int64_t)q * M + i] : (double)f[(int64_t)OPPc[q] * M + n]));
+    }
+""" + moments + """
+    orho[i] = rho; oux[i] = ux; ouy[i] = uy; ouz[i] = uz;
+}
+"""
+    for key, value in (('REAL', real), ('{CX}', '{' + cx + '}'), ('{CY}', '{' + cy + '}'), ('{CZ}', '{' + cz + '}'),
+                       ('{OPP}', '{' + opp + '}'), ('{WW}', '{' + ww + '}')):
+        code = code.replace(key, value)
+    return code
 
 
 _MODULES = {}
@@ -123,32 +165,34 @@ class SparseD3Q19:
         cp.get_default_memory_pool().free_all_blocks()
         self.f = cp.empty((19, self.count), dtype=precision)
         # Half-way bounce-back conserves the staggered momentum S=sum((-1)**x_a j_a) up to
-        # the force: streaming flips its sign and collision adds F*D, D being the even/odd
-        # imbalance of fluid nodes, so stored post-collision states obey S' = -S + F*D.
-        # Starting from w_q alone (S=0) leaves an undamped step-alternating velocity
-        # F*D/(2M).  Raw momentum +F/2 per node is the fixed point S=F*D/2, so the mode is
-        # never excited; the first streamed state then reports u=(j+F/2)/rho=F.
+        # the force: collision adds F*D (D the even/odd imbalance of fluid nodes) and
+        # streaming flips the sign, so arrived states obey S' = -(S + F*D).  Starting from
+        # w_q alone (S=0) leaves an undamped step-alternating velocity F*D/(2M).  Raw
+        # momentum -F/2 per node is the fixed point S=-F*D/2, so the mode is never excited;
+        # it is also true rest in Guo's sense, u=(j+F/2)/rho=0.
         for q in range(19):
-            self.f[q] = W[q] * (1.5 * (int(CX[q]) * force[0] + int(CY[q]) * force[1] + int(CZ[q]) * force[2]))   # deviation from w_q
-        self.fb = cp.empty_like(self.f)
+            self.f[q] = W[q] * (-1.5 * (int(CX[q]) * force[0] + int(CY[q]) * force[1] + int(CZ[q]) * force[2]))   # f_q-w_q
         mod = _module(precision)
-        self._step, self._moments = mod.get_function('step'), mod.get_function('moments')
+        self._even, self._odd, self._moments = (mod.get_function(n) for n in ('even', 'odd', 'moments'))
+        self.steps = 0
         self.blocks = ((self.count + 255) // 256,)
         self.force = tuple(np.float64(a) for a in force)
         self.rates = (np.float64(om_p), np.float64(1 - .5 * om_p), np.float64(om_m), np.float64(1 - .5 * om_m))
         self.out = [cp.empty(self.count, dtype=cp.float64) for _ in range(4)]
 
     def bytes(self):
-        return dict(populations=int(self.f.nbytes + self.fb.nbytes), neighbour_table=int(self.nbr.nbytes),
+        return dict(populations=int(self.f.nbytes), neighbour_table=int(self.nbr.nbytes),
                     moments=int(sum(a.nbytes for a in self.out)), storage='deviation f_q-w_q')
 
     def step(self):
-        self._step(self.blocks, (256,), (self.f, self.fb, self.nbr, np.int64(self.count)) + self.force + self.rates)
-        self.f, self.fb = self.fb, self.f
+        kernel = self._odd if self.steps % 2 else self._even
+        kernel(self.blocks, (256,), (self.f, self.nbr, np.int64(self.count)) + self.force + self.rates)
+        self.steps += 1
 
     def macros(self):
-        """Velocity and density after streaming, the state the dense solver reports."""
-        self._moments(self.blocks, (256,), (self.f, self.nbr, np.int64(self.count)) + self.force + tuple(self.out))
+        """Velocity and density of the arrived (pre-collision) state, as the dense solver reports."""
+        self._moments(self.blocks, (256,), (self.f, self.nbr, np.int64(self.count), np.int32(self.steps % 2))
+                      + self.force + tuple(self.out))
         rho, ux, uy, uz = self.out
         return (ux, uy, uz), rho
 
