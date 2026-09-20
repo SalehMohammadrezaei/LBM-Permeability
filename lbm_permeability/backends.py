@@ -20,8 +20,8 @@ def gpu_available():
 
 
 def select(backend):
-    if backend not in ('auto','numpy','cupy-array','cuda'):
-        raise ValueError('backend must be auto, numpy, cupy-array, or cuda')
+    if backend not in ('auto','numpy','cupy-array','cuda','cuda-sparse'):
+        raise ValueError('backend must be auto, numpy, cupy-array, cuda, or cuda-sparse')
     if backend == 'auto':
         backend = 'cuda' if gpu_available() else 'numpy'
     if backend != 'numpy' and not gpu_available():

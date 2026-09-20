@@ -3,7 +3,9 @@ import numpy as np
 
 
 class Monitor:
-    def __init__(self, xp, tol, atol, consecutive, mass_tol, periodic=True):
+    def __init__(self, xp, tol, atol, consecutive, mass_tol, periodic=True, pore_fraction=None):
+        # pore_fraction: fields hold fluid nodes only; rescale their means to the total volume
+        self.pore_fraction = pore_fraction
         self.xp, self.tol, self.atol = xp, tol, atol
         self.required, self.mass_tol, self.periodic = consecutive, mass_tol, periodic
         self.previous = None
@@ -23,11 +25,12 @@ class Monitor:
         mass = float(f.sum(dtype=xp.float64))
         if self.initial_mass is None:
             self.initial_mass = mass
-        means = np.array([float(u.mean(dtype=xp.float64)) for u in fields])
+        share = 1. if self.pore_fraction is None else self.pore_fraction
+        means = np.array([float(u.mean(dtype=xp.float64))*share for u in fields])
         speed2 = sum(u*u for u in fields)
-        rms = float(xp.sqrt(speed2.mean()))
+        rms = float(xp.sqrt(speed2.mean()*share))
         peak = float(xp.sqrt(speed2.max()))
-        pore = float(fluid.mean())
+        pore = float(fluid.mean()) if self.pore_fraction is None else share
         r = rho[fluid]
         d = dict(iterations=step, superficial_velocity=means.tolist(), velocity_rms=rms,
                  mach_max=peak*np.sqrt(3), rho_min=float(r.min()), rho_max=float(r.max()),
@@ -37,7 +40,7 @@ class Monitor:
                  reynolds_length_lu=length, reynolds_velocity='norm(superficial_velocity)/porosity')
         passed = False
         if self.previous is not None:
-            delta = float(xp.sqrt(sum(((u-v)**2).mean() for u,v in zip(fields,self.previous))))
+            delta = float(xp.sqrt(sum(((u-v)**2).mean() for u,v in zip(fields,self.previous))*share))
             vec_delta = abs(means-self.previous_means)
             field_limit = self.atol+self.tol*rms
             vector_limit = self.atol+self.tol*np.maximum(abs(means),abs(self.previous_means))
