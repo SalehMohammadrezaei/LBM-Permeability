@@ -74,7 +74,7 @@ class Campaign:
     def __init__(self,config,output,budget):
         self.config=config;self.output=Path(output).resolve();self.output.mkdir(parents=True,exist_ok=True)
         self.sources=source_hashes();self.started=time.time();self.deadline=self.started+budget
-        self.rows=[];self.selected=None
+        self.rows=[];self.failures=[];self.selected=None
         frozen=self.output/'frozen.json'
         identity=dict(config=config,source_sha256=self.sources)
         if frozen.exists() and json.loads(frozen.read_text())!=identity:
@@ -158,7 +158,9 @@ class Campaign:
             status=r.get('termination_reason','failed' if child.returncode else 'ok')))
         self.inventory()
         print(f'{time.strftime("%H:%M:%S")} END {name}: {self.rows[-1]["status"]}',flush=True)
-        return attempt if child.returncode==0 and (attempt/'complete.json').exists() else None
+        if child.returncode==0 and (attempt/'complete.json').exists():return attempt
+        self.failures.append(dict(case=name,execution=reason,returncode=child.returncode))
+        return None
 
     def inventory(self):
         with (self.output/'case_inventory.csv').open('w') as f:
@@ -264,7 +266,14 @@ class Campaign:
             result=subprocess.run([sys.executable,str(ROOT/'benchmarks/campaign_worker.py'),str(self.output/'report_job.json')],
                                   stdout=f,stderr=subprocess.STDOUT,timeout=600)
         save(self.output/'finished.json',dict(finished=time.time(),elapsed_s=time.time()-self.started,
-             report_returncode=result.returncode,source_unchanged=source_hashes()==self.sources))
+             report_returncode=result.returncode,source_unchanged=source_hashes()==self.sources,
+             failed_tasks=self.failures))
+        return result.returncode
+
+
+def exit_status(raised,failures,report_returncode):
+    """Zero only when nothing raised, every task completed and the report was written."""
+    return 2 if raised or failures or report_returncode else 0
 
 
 if __name__=='__main__':
@@ -272,12 +281,12 @@ if __name__=='__main__':
     p.add_argument('--budget',type=float,default=28800);args=p.parse_args()
     config=json.loads(Path(args.config).read_text())
     campaign=Campaign(config,args.output,args.budget)
-    failed=False
+    failed=False;report=1
     try:campaign.execute()
     except Exception as error:
         failed=True
         import traceback
         save(campaign.output/'campaign_error.json',dict(error=repr(error),traceback=traceback.format_exc()))
         print(traceback.format_exc(),flush=True)
-    finally:campaign.finalize()
-    sys.exit(2 if failed else 0)
+    finally:report=campaign.finalize()
+    sys.exit(exit_status(failed,campaign.failures,report))
