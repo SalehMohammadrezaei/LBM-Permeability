@@ -14,7 +14,7 @@ def main(argv=None):
     p.add_argument('mask_npy',nargs='?')
     p.add_argument('--demo',action='store_true');p.add_argument('--dimension',type=int,choices=[2,3],default=2)
     p.add_argument('--direction',choices=['x','y','z'],default='x');p.add_argument('--tensor',action='store_true')
-    p.add_argument('--backend',choices=['auto','numpy','cupy-array','cuda'],default='auto')
+    p.add_argument('--backend',choices=['auto','numpy','cupy-array','cuda','cuda-sparse'],default='auto')
     p.add_argument('--no-gpu',action='store_true');p.add_argument('--precision',choices=['float64','float32'],default='float64')
     p.add_argument('--F',type=float,default=1e-6);p.add_argument('--tau',type=float,default=1.)
     p.add_argument('--collision',choices=['bgk','trt'],default='bgk');p.add_argument('--magic',type=float)
