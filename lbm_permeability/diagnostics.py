@@ -17,7 +17,9 @@ class Monitor:
 
     def check(self, step, fields, rho, f, fluid, nu, length, extra=None):
         xp = self.xp
-        if not bool(xp.isfinite(f).all()) or not bool(xp.isfinite(rho).all()):
+        # a nonfinite entry makes the sum nonfinite; the sparse path avoids a population-sized mask
+        finite = bool(xp.isfinite(f).all()) if self.pore_fraction is None else bool(xp.isfinite(f.sum(dtype=xp.float64)))
+        if not finite or not bool(xp.isfinite(rho).all()):
             return 'nonfinite', {'iterations': step, 'finite_state': False, 'reason': 'nonfinite populations or macroscopic fields'}
         if bool((rho[fluid] <= 0).any()):
             return 'invalid_density', {'iterations': step, 'finite_state': True, 'rho_min': float(rho[fluid].min()), 'reason': 'nonpositive fluid density'}

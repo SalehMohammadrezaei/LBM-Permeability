@@ -171,7 +171,7 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                     reason=status; break
             else:
                 rho=f.sum(axis=0,dtype=xp.float64)+(1. if sparse else 0.)  # sparse stores f_q-w_q
-                if not bool(xp.isfinite(f).all()) or not bool(xp.isfinite(rho).all()):
+                if not bool(xp.isfinite(rho).all()):   # rho sums every population of a node
                     reason='nonfinite'; break
                 if bool((rho[fluid]<=0).any()):
                     reason='invalid_density'; break
@@ -188,7 +188,7 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     elif mon.history:
         diagnostics=mon.history[-1]
     # Final mandatory validation even after a reported steady check.
-    if not bool(xp.isfinite(f).all()) or not all(bool(xp.isfinite(u).all()) for u in fields): reason='nonfinite'
+    if not bool(xp.isfinite(f.sum(dtype=xp.float64) if sparse else f).all()) or not all(bool(xp.isfinite(u).all()) for u in fields): reason='nonfinite'
     elif bool((rho[fluid]<=0).any()): reason='invalid_density'
     if reason=='converged' and diagnostics.get('mach_max',np.inf)>max_mach: reason='quality_failed'
     accepted=reason=='converged'
