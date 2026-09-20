@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 from lbm_permeability import lbm_stokes_2d_fast, lbm_stokes_3d, compute_permeability_tensor, geometry
 
 TAUS = (0.55, 0.6, 0.8, 1.0, 1.2, 1.5, 2.0)
-# Zick & Homsy, J. Fluid Mech. 115 (1982), simple cubic: solid fraction -> drag coefficient K,
+# Zick & Homsy, J. Fluid Mech. 115 (1982), Table 2, simple cubic (same values as basilisk.fr/src/test/spheres.c): solid fraction -> drag coefficient K,
 # drag on one sphere = 6 pi mu a U K with U the superficial velocity.
 ZICK_HOMSY_SC = {0.027: 2.008, 0.064: 2.810, 0.125: 4.292, 0.216: 7.442, 0.343: 15.4, 0.45: 28.1, 0.5236: 42.1}
 

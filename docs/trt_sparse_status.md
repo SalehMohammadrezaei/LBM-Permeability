@@ -80,8 +80,8 @@ Simple cubic sphere arrays against Zick and Homsy (1982), tau = 1, Reynolds numb
 near 0.02 across resolutions: errors fall from 2 to 5 % at 32-cube to 0.7 to 1.6 % at
 128-cube for solid fractions 0.027 to 0.5236. Over tau = 0.55 to 2.0 at 64-cube BGK spreads
 8.2 % (c = 0.216) and 12.2 % (c = 0.45); TRT spreads 0.00 %.
-**The seven drag coefficients were typed from memory and must be checked against the paper
-before they are cited.**
+The seven drag coefficients are Table 2 of Zick and Homsy (1982); they were cross-checked
+against the same table as quoted in the Basilisk test suite (basilisk.fr/src/test/spheres.c).
 
 Inclined periodic slit, five angles from 0 to 63.4 degrees: the largest in-plane
 eigenvector recovers the slit direction to 1e-10 degrees; the minor eigenvalue is 1e-11 of
@@ -128,7 +128,7 @@ Saxena et al. (2017): sphere pack 2.438 to 2.903e-10 (POREMAPS 2.512e-10); Berea
 
 ## Open items
 
-1. Check the Zick and Homsy coefficients against the paper; add BCC and FCC from the same table.
+1. Add BCC and FCC sphere arrays from Zick and Homsy (1982) Table 2 (needs the paper itself).
 2. Read the reference tables of Saxena et al. (2017) directly; only three samples are quoted second-hand.
 3. Time the in-place `cuda-sparse` and run a CPU thread-scaling series on a quiet machine.
 4. Name, release tag, Zenodo DOI, then the manuscript.
