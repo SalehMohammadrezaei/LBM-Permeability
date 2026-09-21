@@ -6,8 +6,8 @@ import argparse,sys,csv
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability import geometry,lbm_stokes
-from lbm_permeability.io import save_result
+from porewise import geometry,lbm_stokes
+from porewise.io import save_result
 
 
 def main():

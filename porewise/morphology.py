@@ -22,7 +22,7 @@ def local_thickness_distribution(blocked, voxel_size=1., bins=30, *, boundary='s
     try:
         import scipy
         from scipy.ndimage import distance_transform_edt
-    except ImportError as e: raise ImportError('install lbm-permeability[morphology]') from e
+    except ImportError as e: raise ImportError('install porewise[morphology]') from e
     pore=np.pad(~blocked,1,constant_values=False)
     dt=distance_transform_edt(pore)
     radii=np.unique(dt[dt>0])[::-1]

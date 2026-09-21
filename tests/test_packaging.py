@@ -8,8 +8,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from lbm_permeability import io, memory
-from lbm_permeability.backends import HAS_GPU
+from porewise import io, memory
+from porewise.backends import HAS_GPU
 
 
 @pytest.mark.parametrize('error', [FileNotFoundError(), PermissionError(),
@@ -88,7 +88,7 @@ def without_resource(name, *args, **kwargs):
     return original_import(name, *args, **kwargs)
 builtins.__import__ = without_resource
 import numpy as np
-from lbm_permeability.__main__ import main
+from porewise.__main__ import main
 root = Path(sys.argv[1])
 mask = np.ones((8, 12), dtype=bool)
 mask[2:6] = False
@@ -121,7 +121,7 @@ for p in (result['provenance'], result['metadata']['geometry_provenance'], error
 
 @pytest.mark.skipif(not HAS_GPU, reason='requires real CUDA')
 def test_pressure_export_without_memory_measurement(monkeypatch, tmp_path):
-    from lbm_permeability.d2q9_pressure import lbm_stokes_2d_pressure
+    from porewise.d2q9_pressure import lbm_stokes_2d_pressure
     monkeypatch.setitem(sys.modules, 'resource', None)
     result = lbm_stokes_2d_pressure(np.zeros((8, 12), bool), walls_y=True,
                                     n_steps_max=1, verbose=False, return_fields=False)
@@ -131,3 +131,14 @@ def test_pressure_export_without_memory_measurement(monkeypatch, tmp_path):
     assert saved['memory']['process_peak_rss_bytes'] is None
     assert saved['memory']['process_peak_rss_status'] == 'unavailable'
     assert saved['memory']['gpu_pool_reserved_peak_sampled_bytes'] > 0
+
+
+def test_former_package_name_still_imports():
+    import importlib, sys, warnings
+    sys.modules.pop('lbm_permeability', None)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        old = importlib.import_module('lbm_permeability')
+    import porewise
+    assert old.lbm_stokes is porewise.lbm_stokes
+    assert any(issubclass(w.category, DeprecationWarning) for w in caught)

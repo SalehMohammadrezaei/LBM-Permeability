@@ -12,7 +12,7 @@ records=[]
 for backend in ('numpy','cupy-array','cuda'):
  for rep in range(4):
   directory=root/f'{backend}_{rep}'
-  command=[sys.executable,'-m','lbm_permeability',str(mask),'--backend',backend,
+  command=[sys.executable,'-m','porewise',str(mask),'--backend',backend,
    '--dx','1','--F','1e-6','--steps','15000','--tol','1e-6','--check-every','100',
    '--timeout','60','--output',str(directory)]
   before=os.getloadavg();t=time.perf_counter()

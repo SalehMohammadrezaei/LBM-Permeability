@@ -3,8 +3,8 @@ import numpy as np
 import pytest
 
 pytest.importorskip('numba')
-from lbm_permeability import lbm_stokes_3d, k_from_run, geometry
-from lbm_permeability.backends import HAS_GPU
+from porewise import lbm_stokes_3d, k_from_run, geometry
+from porewise.backends import HAS_GPU
 
 TIGHT = dict(verbose=False, n_steps_max=200000, conv_tol=1e-11, conv_window=200, return_fields=True)
 

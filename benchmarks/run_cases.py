@@ -6,12 +6,12 @@ import argparse,json,sys,time,traceback,os,resource
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability import geometry
-from lbm_permeability.solver import periodic
-from lbm_permeability.tensor import compute_permeability_tensor
-from lbm_permeability.d2q9_pressure import lbm_stokes_2d_pressure
-from lbm_permeability.io import save_result,write_json,provenance
-from lbm_permeability.backends import cp,HAS_GPU
+from porewise import geometry
+from porewise.solver import periodic
+from porewise.tensor import compute_permeability_tensor
+from porewise.d2q9_pressure import lbm_stokes_2d_pressure
+from porewise.io import save_result,write_json,provenance
+from porewise.backends import cp,HAS_GPU
 
 
 def generate(g):

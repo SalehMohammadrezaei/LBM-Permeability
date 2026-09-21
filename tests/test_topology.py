@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from lbm_permeability.topology import connectivity_report
+from porewise.topology import connectivity_report
 
 
 def test_periodic_winding_not_face_contact():

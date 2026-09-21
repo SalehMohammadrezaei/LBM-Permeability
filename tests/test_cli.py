@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from lbm_permeability.__main__ import main
+from porewise.__main__ import main
 
 
 def test_cli_failure_saved(tmp_path):

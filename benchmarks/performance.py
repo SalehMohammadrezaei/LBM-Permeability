@@ -6,9 +6,9 @@ import argparse,sys,time,os,json
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability.backends import cp,HAS_GPU
-from lbm_permeability.io import write_json,provenance
+from porewise.solver import periodic
+from porewise.backends import cp,HAS_GPU
+from porewise.io import write_json,provenance
 
 
 def mask(shape):

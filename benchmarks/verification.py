@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from lbm_permeability import lbm_stokes_2d_fast, lbm_stokes_3d, compute_permeability_tensor, geometry
+from porewise import lbm_stokes_2d_fast, lbm_stokes_3d, compute_permeability_tensor, geometry
 
 TAUS = (0.55, 0.6, 0.8, 1.0, 1.2, 1.5, 2.0)
 # Zick & Homsy, J. Fluid Mech. 115 (1982), Table 2, simple cubic (same values as basilisk.fr/src/test/spheres.c): solid fraction -> drag coefficient K,

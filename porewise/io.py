@@ -48,7 +48,7 @@ def _git_provenance():
 def provenance(blocked=None):
     import importlib.metadata as im
     packages={}
-    for name in ('numpy','cupy-cuda12x','scipy','lbm-permeability'):
+    for name in ('numpy','cupy-cuda12x','scipy','porewise'):
         try: packages[name]=im.version(name)
         except im.PackageNotFoundError: packages[name]=None
     source=Path(__file__).parent

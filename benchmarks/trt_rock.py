@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from lbm_permeability import lbm_stokes_3d
+from porewise import lbm_stokes_3d
 
 p = argparse.ArgumentParser()
 p.add_argument('--dataset', required=True); p.add_argument('--shape', type=int, nargs=3, default=[500, 500, 500])

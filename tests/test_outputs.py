@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from lbm_permeability.tensor import assemble_tensor,compute_permeability_tensor
-from lbm_permeability.morphology import local_thickness_distribution
+from porewise.tensor import assemble_tensor,compute_permeability_tensor
+from porewise.morphology import local_thickness_distribution
 
 
 def test_known_tensor():

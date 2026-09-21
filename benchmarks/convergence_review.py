@@ -3,9 +3,9 @@ import argparse, importlib.util, json, os, sys, time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability.backends import cp
-from lbm_permeability.io import save_result,write_json,provenance
+from porewise.solver import periodic
+from porewise.backends import cp
+from porewise.io import save_result,write_json,provenance
 
 p=argparse.ArgumentParser()
 p.add_argument('--mode',choices=['performance','convergence'],required=True)
@@ -19,7 +19,7 @@ s=dict(backend='cuda',precision='float64',tau=1.,conv_tol=1e-6,conv_atol=1e-12,
        return_fields=False,verbose=True,heartbeat=2000,n_steps_max=60000,wall_timeout_s=1200)
 meta=dict(provenance=provenance(m),settings=s,shape=list(m.shape),load_average=os.getloadavg())
 if a.mode=='performance':
- spec=importlib.util.spec_from_file_location('lbm_permeability._review_baseline',out/'solver_before.py')
+ spec=importlib.util.spec_from_file_location('porewise._review_baseline',out/'solver_before.py')
  old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
  s.update(n_steps_max=500,verbose=False)
  records=[];reference=None

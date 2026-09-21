@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from lbm_permeability import lbm_stokes, lbm_stokes_3d, lbm_stokes_2d_fast, lbm_stokes_3d_fast, lbm_stokes_2d_pressure, k_from_run, geometry
-from lbm_permeability.backends import HAS_GPU
-from lbm_permeability.validation import decode_mask
+from porewise import lbm_stokes, lbm_stokes_3d, lbm_stokes_2d_fast, lbm_stokes_3d_fast, lbm_stokes_2d_pressure, k_from_run, geometry
+from porewise.backends import HAS_GPU
+from porewise.validation import decode_mask
 
 PATHS=['numpy2','numpy3']+(['array2','array3','cuda2','cuda3'] if HAS_GPU else [])
 
@@ -78,8 +78,8 @@ def test_mask_and_units():
 
 
 def test_zou_he_algebra():
-    from lbm_permeability.d2q9_pressure import zou_he
-    from lbm_permeability.d2q9 import CX,CY
+    from porewise.d2q9_pressure import zou_he
+    from porewise.d2q9 import CX,CY
     f=np.random.default_rng(2).uniform(.01,.04,(9,8,10))
     faces=np.ones(8,bool)
     zou_he(f,faces,faces,1.,.99,np)

@@ -3,7 +3,7 @@ import argparse,json,sys,csv
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.io import write_json
+from porewise.io import write_json
 
 
 def main():

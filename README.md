@@ -1,4 +1,4 @@
-# LBM-Permeability
+# PoreWise
 
 **Absolute permeability tensors of 3D pore images, on one GPU or on CPU cores.**
 A lattice-Boltzmann Stokes solver that stores only the pore voxels, uses a
@@ -69,20 +69,20 @@ CuPy is not enough.
 
 ```bash
 # full tensor of a labelled image, recommended settings
-python -m lbm_permeability mask.npy --tensor --backend cuda-sparse --collision trt \
+python -m porewise mask.npy --tensor --backend cuda-sparse --collision trt \
   --solid-value 255 --pore-value 0 --dx 5e-6 --output results/tensor
 
 # no GPU
-python -m lbm_permeability mask.npy --tensor --backend numba-sparse --collision trt \
+python -m porewise mask.npy --tensor --backend numba-sparse --collision trt \
   --solid-value 255 --pore-value 0 --dx 5e-6 --output results/tensor_cpu
 
 # small demonstration
-python -m lbm_permeability --demo --dimension 2 --backend numpy --dx 2e-6 --output results/demo
+python -m porewise --demo --dimension 2 --backend numpy --dx 2e-6 --output results/demo
 ```
 
 ```python
 import numpy as np
-from lbm_permeability import compute_permeability_tensor
+from porewise import compute_permeability_tensor
 
 blocked = np.load("mask.npy")            # Boolean, True = solid, axes (z, y, x)
 t = compute_permeability_tensor(blocked, voxel_size=5e-6, backend="cuda-sparse",

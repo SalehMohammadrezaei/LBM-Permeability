@@ -32,7 +32,7 @@ def save(path,obj):
 
 
 def source_hashes():
-    return {str(p.relative_to(ROOT)):digest(p) for folder in ('lbm_permeability','benchmarks','tests')
+    return {str(p.relative_to(ROOT)):digest(p) for folder in ('porewise','benchmarks','tests')
             for p in sorted((ROOT/folder).glob('*.py'))}
 
 
