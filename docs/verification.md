@@ -157,9 +157,14 @@ analytical mean velocity with the voxel-counted area:
 
 | Cross-section | BGK | TRT |
 |---|---|---|
-| Circle 200 / 400 / 800 | -0.22 / -0.12 / -0.06 % | -0.24 / -0.13 / -0.07 % |
+| Circle 200 / 400 | -0.22 / -0.12 % | -0.24 / -0.13 % |
+| Circle 800 | rerun in progress | rerun in progress |
 | Square 400 | 0.001 % | 0.000 % |
 | Triangle 400 | -0.17 % | -0.19 % |
+
+The first Circle 800 runs reached their one-hour wall limit after 1.8 million steps without
+meeting the 1e-9 tolerance (estimates -0.06 % and -0.07 %). They were not accepted and are being
+rerun with a longer limit. Every other ladder case and every rock run converged.
 
 Micromodel cell of Wagner et al. (2021), k in 1e-11 m^2 (TRT, finest grid run):
 
