@@ -29,6 +29,7 @@ env/
 
 # Local evidence, large outputs and archives; curated records live in benchmarks/evidence.
 /results/
+/results
 *.npz
 *.tar.gz
 *.whl

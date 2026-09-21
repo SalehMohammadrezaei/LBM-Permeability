@@ -1,4 +1,4 @@
-"""CUDA BGK/Guo kernels: selectable storage, double collision arithmetic."""
+"""CUDA BGK and TRT/Guo kernels: selectable storage, double collision arithmetic."""
 from __future__ import annotations
 
 import time
@@ -58,6 +58,42 @@ void collide(const {real}* __restrict__ f, {real}* __restrict__ fo,
         double S   = Wc[q]*hit*(3.0*cF + 9.0*cu*cF - 3.0*uF);
         // collide fluid nodes ONLY — colliding solids corrupts the bounce-back (wall slip)
         fo[(int64_t)q * N + i] = solid[i] ? ({real})fq[q] : ({real})(fq[q] - (fq[q]-feq)/tau + S);
+    }}
+}}
+
+extern "C" __global__
+void collide_trt(const {real}* __restrict__ f, {real}* __restrict__ fo,
+             const unsigned char* __restrict__ solid, const int64_t N,
+             const double Fx, const double Fy, const double Fz,
+             const double tau, const double hit, const double om_m, const double hit_m) {{
+    int64_t i = (int64_t)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= N) return;
+    double fq[19];
+    #pragma unroll
+    for (int q = 0; q < 19; q++) fq[q] = (double)f[(int64_t)q * N + i];
+    if (solid[i]) {{
+        #pragma unroll
+        for (int q = 0; q < 19; q++) fo[(int64_t)q * N + i] = ({real})fq[q];
+        return;
+    }}
+    double rho = 0.0;
+    #pragma unroll
+    for (int q = 0; q < 19; q++) rho += fq[q];
+    double ux = (fq[1]-fq[2]+fq[7]-fq[8]+fq[9]-fq[10]+fq[11]-fq[12]+fq[13]-fq[14] + 0.5*Fx)/rho;
+    double uy = (fq[3]-fq[4]+fq[7]+fq[8]-fq[9]-fq[10]+fq[15]-fq[16]+fq[17]-fq[18] + 0.5*Fy)/rho;
+    double uz = (fq[5]-fq[6]+fq[11]+fq[12]-fq[13]-fq[14]+fq[15]+fq[16]-fq[17]-fq[18] + 0.5*Fz)/rho;
+    double u2 = ux*ux + uy*uy + uz*uz;
+    double uF = ux*Fx + uy*Fy + uz*Fz;
+    const double om_p = 1.0/tau;
+    #pragma unroll
+    for (int q = 0; q < 19; q++) {{
+        // even and odd parts of the pair (q, opposite q) relax at separate rates
+        double cu = CXc[q]*ux + CYc[q]*uy + CZc[q]*uz;
+        double cF = CXc[q]*Fx + CYc[q]*Fy + CZc[q]*Fz;
+        double fb = fq[OPPc[q]];
+        double even = om_p*(0.5*(fq[q]+fb) - Wc[q]*rho*(1.0 + 4.5*cu*cu - 1.5*u2)) - hit*Wc[q]*(9.0*cu*cF - 3.0*uF);
+        double odd  = om_m*(0.5*(fq[q]-fb) - Wc[q]*rho*3.0*cu) - hit_m*Wc[q]*3.0*cF;
+        fo[(int64_t)q * N + i] = ({real})(fq[q] - even - odd);
     }}
 }}
 

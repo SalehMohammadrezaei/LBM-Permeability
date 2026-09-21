@@ -55,6 +55,41 @@ void collide(const {real}* __restrict__ f, {real}* __restrict__ fo,
 }}
 
 extern "C" __global__
+void collide_trt(const {real}* __restrict__ f, {real}* __restrict__ fo,
+             const unsigned char* __restrict__ solid, const int64_t N,
+             const double Fx, const double Fy,
+             const double tau, const double hit, const double om_m, const double hit_m) {{
+    int64_t i = (int64_t)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= N) return;
+    double fq[9];
+    #pragma unroll
+    for (int q = 0; q < 9; q++) fq[q] = (double)f[(int64_t)q * N + i];
+    if (solid[i]) {{
+        #pragma unroll
+        for (int q = 0; q < 9; q++) fo[(int64_t)q * N + i] = ({real})fq[q];
+        return;
+    }}
+    double rho = 0.0;
+    #pragma unroll
+    for (int q = 0; q < 9; q++) rho += fq[q];
+    double ux = (fq[1]-fq[2]+fq[5]-fq[6]-fq[7]+fq[8] + 0.5*Fx)/rho;
+    double uy = (fq[3]-fq[4]+fq[5]+fq[6]-fq[7]-fq[8] + 0.5*Fy)/rho;
+    double u2 = ux*ux + uy*uy;
+    double uF = ux*Fx + uy*Fy;
+    const double om_p = 1.0/tau;
+    #pragma unroll
+    for (int q = 0; q < 9; q++) {{
+        // even and odd parts of the pair (q, opposite q) relax at separate rates
+        double cu = CXc[q]*ux + CYc[q]*uy;
+        double cF = CXc[q]*Fx + CYc[q]*Fy;
+        double fb = fq[OPPc[q]];
+        double even = om_p*(0.5*(fq[q]+fb) - Wc[q]*rho*(1.0 + 4.5*cu*cu - 1.5*u2)) - hit*Wc[q]*(9.0*cu*cF - 3.0*uF);
+        double odd  = om_m*(0.5*(fq[q]-fb) - Wc[q]*rho*3.0*cu) - hit_m*Wc[q]*3.0*cF;
+        fo[(int64_t)q * N + i] = ({real})(fq[q] - even - odd);
+    }}
+}}
+
+extern "C" __global__
 void stream(const {real}* __restrict__ fc, {real}* __restrict__ fo,
             const unsigned char* __restrict__ solid, const int nx, const int ny) {{
     int64_t N = (int64_t)nx * ny;

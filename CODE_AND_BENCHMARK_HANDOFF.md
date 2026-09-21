@@ -322,3 +322,34 @@ Recorded initial pilot/test time was 1,283.33 seconds (21.39 minutes), below the
 calls total 2,983.80 seconds (49.73 minutes). This sums calls, including warmups
 and failures; some CPU checks overlapped GPU work. It excludes ordinary code,
 installation and download time and is not total elapsed project time.
+
+## New local overnight campaign (separate evidence)
+
+A subsequent, unpushed local branch `overnight-rock-evidence-20260918` adds a
+configurable bounded campaign runner, streaming NPY/VTI export, conservative
+streamline plotting and explicit public-call performance metrics. It does not
+change numerical equations, convergence rules or any historical result file.
+The working campaign is `results/overnight-20260918T154529Z`; its `frozen.json`
+and source copy identify the new calculations independently of the historical
+snapshots described above. Execution instructions and GPU architecture are in
+`docs/overnight_campaign.md`.
+
+Before production: focused tests **10 passed (2.20 s)**; installed-wheel tests
+outside the checkout **7 passed (2.15 s)**, with all 19 package Python files
+verified against the wheel installation. A real CUDA allocation/kernel test
+passed. An actual non-cubic 32×34×36 rock campaign accepted all three directional
+loads, exported NPY/VTI fields, verified exact-case reuse and generated its
+report. The first renderer attempt exposed a VTK API incompatibility; its failure
+was retained and the corrected render was executed successfully. The later
+physical-axis render check also completed. These are workflow checks, not large
+rock results.
+
+The eight-hour production campaign is launched separately after these checks.
+Consult its `status.json`, `campaign.log`, `case_inventory.csv` and eventual
+`finished.json` for actual progress. Its final technical handoff will be
+`report/OVERNIGHT_HANDOFF.md`, with small evidence in
+`report/technical_evidence.tar.gz`; full fields remain separate. No pending
+large calculation is claimed complete here. The independent comparison remains
+blocked for the specific reasons recorded in `independent_comparison.md` inside
+the new campaign, including unqualified local LBPM source/binary and output
+conventions. The existing external installations were left untouched.

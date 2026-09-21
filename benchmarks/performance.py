@@ -60,6 +60,10 @@ def main():
                         r['repetitions'].append(dict(index=repeat,wall_s=wall,timing=run['timing'],memory=run['memory'],
                                                      iterations_completed=count,status=run['termination_reason'],
                                                      mlups_total_lattice=count*m.size/run['timing']['solve_and_diagnostics_s']/1e6,
+                                                     mlups_total_lattice_public_call=count*m.size/wall/1e6,
+                                                     mlups_total_lattice_iteration_loop=count*m.size/run['timing']['solve_and_diagnostics_s']/1e6,
+                                                     mlups_fluid_nodes_public_call=count*np.count_nonzero(~m)/wall/1e6,
+                                                     legacy_mlups_denominator='iteration loop including scheduled diagnostics',
                                                      mlups_fluid_nodes=count*np.count_nonzero(~m)/run['timing']['solve_and_diagnostics_s']/1e6,
                                                      diagnostics=run['diagnostics']))
                     valid=[rr for rr in r['repetitions'] if rr['iterations_completed']==steps and rr['status']=='max_steps']

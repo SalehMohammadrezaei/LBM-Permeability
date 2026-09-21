@@ -33,7 +33,8 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
              conv_window=200, backend='auto', precision='float64', return_fields=True,
              verbose=True, heartbeat=1000, wall_timeout_s=None, stability_every=50,
              conv_atol=1e-12, consecutive=3, mass_tol=None, max_mach=.05,
-             characteristic_length=1., min_steps=None, mempool_flush=2000):
+             characteristic_length=1., min_steps=None, mempool_flush=2000,
+             collision='bgk', magic=None):
     started=time.perf_counter()
     blocked=v.mask(blocked,len(force))
     v.parameters(tau,force,n_steps_max,conv_tol,conv_window,precision,wall_timeout_s,
@@ -42,12 +43,25 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     v.positive('characteristic_length',characteristic_length)
     min_steps=conv_window*consecutive if min_steps is None else v.integer('min_steps',min_steps)
     mass_tol=(1e-8 if precision=='float64' else 1e-4) if mass_tol is None else v.positive('mass_tol',mass_tol)
+    if collision not in ('bgk','trt'):
+        raise ValueError("collision must be 'bgk' or 'trt'")
+    if collision=='bgk':
+        if magic is not None: raise ValueError('magic applies to the trt collision only')
+    else:
+        magic=v.positive('magic',3/16 if magic is None else magic)
+    # TRT: the symmetric rate sets the viscosity, the antisymmetric rate follows
+    # from magic=(1/w_plus-1/2)(1/w_minus-1/2); 3/16 fixes the bounce-back wall half-way.
+    om_p=1/tau
+    om_m=1/(.5+magic/(tau-.5)) if collision=='trt' else om_p
     backend,xp=select(backend)
-    if backend != 'cuda' and precision != 'float64':
+    sparse=backend in ('cuda-sparse','numba-sparse')
+    if sparse and blocked.ndim!=3:
+        raise ValueError('sparse backends store D3Q19 pore nodes; use cuda or numpy for 2D masks')
+    if backend not in ('cuda','cuda-sparse','numba-sparse') and precision != 'float64':
         raise ValueError('array reference backends support float64 only; use cuda for float32 storage')
     nu=(tau-.5)/3
     ndim=blocked.ndim
-    base=dict(nu=nu,backend=backend,precision=precision,storage_dtype=precision,compute_dtype='float64',
+    base=dict(nu=nu,collision=collision,magic=magic,omega_plus=om_p,omega_minus=om_m,backend=backend,precision=precision,storage_dtype=precision,compute_dtype='float64',
               diagnostic_dtype='float64',boundary_conditions='periodic in every array axis',
               array_axes=list('yx' if ndim==2 else 'zyx'),components=list('xyz'[:ndim]),
               shape=list(blocked.shape),porosity=float((~blocked).mean()),
@@ -56,8 +70,9 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                             conv_atol=conv_atol,conv_window=conv_window,consecutive=consecutive,
                             stability_every=stability_every,wall_timeout_s=wall_timeout_s,
                             min_steps=min_steps,mass_tol=mass_tol,max_mach=max_mach,
-                            characteristic_length=characteristic_length),
-              compiler_options=[] if backend=='cuda' else None)
+                            characteristic_length=characteristic_length,
+                            collision=collision,magic=magic),
+              compiler_options=[] if backend in ('cuda','cuda-sparse') else None)
     base.update({f'F_{c}':float(F) for c,F in zip('xyz',force)})
     special='all_solid' if blocked.all() else ('zero_forcing' if not np.any(force) else ('fully_fluid_periodic' if not blocked.any() else None))
     if special:
@@ -72,29 +87,44 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
         return base
     force_scale=float(np.max(np.abs(force)))
     base['force_to_storage_epsilon']=force_scale/np.finfo(precision).eps
-    if force_scale < np.finfo(precision).eps:
+    # sparse backends store f_q-w_q, so the force is not lost against the rest populations
+    if not sparse and force_scale < np.finfo(precision).eps:
         raise ValueError('force is below population storage roundoff; increase it or use float64 (above this guard accuracy still needs verification)')
     c,w,pairs=lattice(ndim)
-    bd=xp.asarray(blocked); fluid=~bd
-    f=xp.empty((len(w),)+blocked.shape,dtype=precision)
-    for q in range(len(w)): f[q]=w[q]
-    peak_pool=0
+    opp=list(range(len(w)))
+    for a,b in pairs: opp[a],opp[b]=b,a
+    peak_pool=0;share=None
+    if sparse:
+        if backend=='cuda-sparse':
+            from .d3q19_sparse import SparseD3Q19 as Sparse
+        else:
+            from .d3q19_sparse_cpu import SparseD3Q19CPU as Sparse
+        state=Sparse(blocked,force,om_p,om_m,precision)
+        f=state.f;fluid=slice(None);share=base['porosity']
+        look=lambda:state.macros()
+    else:
+        bd=xp.asarray(blocked); fluid=~bd
+        f=xp.empty((len(w),)+blocked.shape,dtype=precision)
+        for q in range(len(w)): f[q]=w[q]
+        look=lambda:macros(f,bd,force,c,xp)
     if backend=='cuda':
         if ndim==2:
             from .d2q9_fast import _module
         else:
             from .d3q19_fast import _module
         mod=_module(precision)
-        collide,stream=mod.get_function('collide'),mod.get_function('stream')
+        collide,stream=mod.get_function('collide_trt' if collision=='trt' else 'collide'),mod.get_function('stream')
         fb=xp.empty_like(f); solid=xp.asarray(blocked,dtype=xp.uint8)
         blocks=((blocked.size+255)//256,)
         args_c=(solid,np.int64(blocked.size),*(np.float64(a) for a in force),np.float64(tau),np.float64(1-.5/tau))
+        if collision=='trt': args_c += (np.float64(om_m),np.float64(1-.5*om_m))
         args_s=(solid,*(np.int32(n) for n in blocked.shape[::-1]))
     if xp is not np: xp.cuda.get_current_stream().synchronize()
     setup_s=time.perf_counter()-started
-    mon=Monitor(xp,conv_tol,conv_atol,consecutive,mass_tol)
-    mon.initial_mass=float(blocked.size)
-    fields,rho=macros(f,bd,force,c,xp)
+    mon=Monitor(xp,conv_tol,conv_atol,consecutive,mass_tol,pore_fraction=share)
+    mon.initial_mass=float(state.count if sparse else blocked.size)
+    if sparse: mon.mass_offset=float(state.count)
+    fields,rho=look()
     mon.check(0,fields,rho,f,fluid,nu,characteristic_length)
     reason='max_steps'; iterations=0; diagnostics={}
     initial_diagnostics_s=time.perf_counter()-started-setup_s
@@ -102,7 +132,9 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     for step in range(1,n_steps_max+1):
         if wall_timeout_s is not None and time.perf_counter()-started >= wall_timeout_s:
             reason='timeout'; break
-        if backend=='cuda':
+        if sparse:
+            state.step();f=state.f
+        elif backend=='cuda':
             collide(blocks,(256,),(f,fb)+args_c)
             stream(blocks,(256,),(fb,f)+args_s)
         else:
@@ -114,7 +146,18 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                 cf=sum(int(cc[q])*F for cc,F in zip(c,force))
                 eq=w[q]*rho*(1+3*cu+4.5*cu*cu-1.5*u2)
                 source=w[q]*(1-.5/tau)*(3*cf+9*cu*cf-3*uf)
-                f[q] += (-(f[q]-eq)/tau+source)*fluid
+                if collision=='bgk':
+                    f[q] += (-(f[q]-eq)/tau+source)*fluid
+                    continue
+                if q>opp[q]: continue
+                # even/odd parts of the pair (q, opposite q); q==0 is its own opposite
+                a,b=f[q],f[opp[q]]
+                even=om_p*(.5*(a+b)-w[q]*rho*(1+4.5*cu*cu-1.5*u2))-(1-.5*om_p)*w[q]*(9*cu*cf-3*uf)
+                odd=om_m*(.5*(a-b)-w[q]*rho*3*cu)-(1-.5*om_m)*w[q]*3*cf
+                if q==opp[q]:
+                    f[q] -= even*fluid
+                else:
+                    f[q],f[opp[q]]=a-(even+odd)*fluid,b-(even-odd)*fluid
             for q in range(len(w)):
                 f[q]=xp.roll(f[q],tuple(int(cc[q]) for cc in c[::-1]),axis=tuple(range(ndim)))
             for a,b in pairs:
@@ -126,13 +169,13 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                 # The full monitor performs population/density validity checks.
                 # Do not repeat them or construct unused velocities at the
                 # intermediate stability-only checks.
-                fields,rho=macros(f,bd,force,c,xp)
+                fields,rho=look()
                 status,diagnostics=mon.check(step,fields,rho,f,fluid,nu,characteristic_length)
                 if status and (status!='converged' or step>=min_steps):
                     reason=status; break
             else:
-                rho=f.sum(axis=0,dtype=xp.float64)
-                if not bool(xp.isfinite(f).all()) or not bool(xp.isfinite(rho).all()):
+                rho=f.sum(axis=0,dtype=xp.float64)+(1. if sparse else 0.)  # sparse stores f_q-w_q
+                if not bool(xp.isfinite(rho).all()):   # rho sums every population of a node
                     reason='nonfinite'; break
                 if bool((rho[fluid]<=0).any()):
                     reason='invalid_density'; break
@@ -142,14 +185,14 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     if xp is not np: xp.cuda.get_current_stream().synchronize()
     solve_s=time.perf_counter()-solve_start
     final_diagnostics_start=time.perf_counter()
-    fields,rho=macros(f,bd,force,c,xp)
+    fields,rho=look()
     if reason in ('nonfinite','invalid_density') or not mon.history or mon.history[-1]['iterations']!=iterations:
         status,diagnostics=mon.check(iterations,fields,rho,f,fluid,nu,characteristic_length)
         if status in ('nonfinite','invalid_density'): reason=status
     elif mon.history:
         diagnostics=mon.history[-1]
     # Final mandatory validation even after a reported steady check.
-    if not bool(xp.isfinite(f).all()) or not all(bool(xp.isfinite(u).all()) for u in fields): reason='nonfinite'
+    if not bool(xp.isfinite(f.sum(dtype=xp.float64) if sparse else f).all()) or not all(bool(xp.isfinite(u).all()) for u in fields): reason='nonfinite'
     elif bool((rho[fluid]<=0).any()): reason='invalid_density'
     if reason=='converged' and diagnostics.get('mach_max',np.inf)>max_mach: reason='quality_failed'
     accepted=reason=='converged'
@@ -157,7 +200,7 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
                 iterations=iterations,iterations_completed=iterations,step_converged=iterations if accepted else None,
                 convergence_history=mon.history,diagnostics=diagnostics)
     for component,u in zip('xyz',fields):
-        base[f'u_{component}_mean_total']=float(u.mean(dtype=xp.float64))
+        base[f'u_{component}_mean_total']=float(u.mean(dtype=xp.float64))*(1. if share is None else share)
     loads=np.flatnonzero(force)
     estimate=(base[f'u_{"xyz"[loads[0]]}_mean_total']*nu/force[loads[0]]) if len(loads)==1 else None
     base['k_lu']=estimate if accepted else None
@@ -165,13 +208,18 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
     final_diagnostics_s=time.perf_counter()-final_diagnostics_start
     export_start=time.perf_counter()
     if return_fields:
-        for component,u in zip('xyz',fields): base['u'+component]=np.asarray(u) if xp is np else cp.asnumpy(u)
-        base['rho']=np.asarray(rho) if xp is np else cp.asnumpy(rho)
+        if sparse:
+            for component,u in zip('xyz',fields): base['u'+component]=state.dense(u)
+            base['rho']=np.where(blocked,1.,state.dense(rho))
+        else:
+            for component,u in zip('xyz',fields): base['u'+component]=np.asarray(u) if xp is np else cp.asnumpy(u)
+            base['rho']=np.asarray(rho) if xp is np else cp.asnumpy(rho)
     if xp is not np:
         peak_pool=max(peak_pool,xp.get_default_memory_pool().total_bytes())
     base.update(elapsed_s=time.perf_counter()-started,
                 timing=dict(setup_s=setup_s,initial_diagnostics_s=initial_diagnostics_s,final_diagnostics_s=final_diagnostics_s,solve_and_diagnostics_s=solve_s,loop_note='iteration loop includes scheduled checks; initial/final checks reported separately',export_s=time.perf_counter()-export_start),
                 memory=dict(**process_memory_report(),
                             gpu_pool_reserved_peak_sampled_bytes=peak_pool,
+                            **(dict(sparse_bytes=state.bytes()) if sparse else {}),
                             note='RSS is process lifetime high-water; GPU is sampled allocator reservation including cache'))
     return base

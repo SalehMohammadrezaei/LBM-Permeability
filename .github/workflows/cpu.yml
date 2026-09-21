@@ -8,5 +8,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
-      - run: python -m pip install '.[test,morphology]'
+      - run: python -m pip install '.[test,morphology,cpu]'
       - run: python -m pytest -q

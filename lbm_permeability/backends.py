@@ -20,12 +20,12 @@ def gpu_available():
 
 
 def select(backend):
-    if backend not in ('auto','numpy','cupy-array','cuda'):
-        raise ValueError('backend must be auto, numpy, cupy-array, or cuda')
+    if backend not in ('auto','numpy','cupy-array','cuda','cuda-sparse','numba-sparse'):
+        raise ValueError('backend must be auto, numpy, cupy-array, cuda, cuda-sparse, or numba-sparse')
     if backend == 'auto':
         backend = 'cuda' if gpu_available() else 'numpy'
-    if backend != 'numpy' and not gpu_available():
+    if backend not in ('numpy','numba-sparse') and not gpu_available():
         raise RuntimeError(f'{backend} requires a working CUDA device and CuPy runtime')
-    return backend, np if backend == 'numpy' else cp
+    return backend, np if backend in ('numpy','numba-sparse') else cp
 
 HAS_GPU = gpu_available()
