@@ -106,6 +106,12 @@ Micromodel cell of Wagner et al. (2021), k in 1e-11 m^2 (TRT, finest grid run):
 | 0.47 | 3.94 (32) | 3.62 | 3.86 | 3.97 |
 | 0.49 | 0.443 (91, exact) | 0.46 | 0.54 | 0.47 |
 
+## Published 1024-cube benchmarks of Saxena et al. (2017), TRT, tau = 0.6, x load
+
+| Sample | Porosity | This code k11 (m^2) | LBM range in Saxena et al. | POREMAPS | Hardware, time |
+|---|---|---|---|---|---|
+| Rock3, Fontainebleau, 2.072 um | 0.0953 | 0.798e-13 | 0.642 to 1.411e-13 | 0.920e-13 | one RTX 6000 Ada, 18.5 GB, 189400 steps, 5.0 h |
+
 ## A mistake caught on the way
 
 The first sphere-array pass used one force for every resolution. At 128-cube the flow
