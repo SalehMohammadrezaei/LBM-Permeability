@@ -97,7 +97,7 @@ changes below absolute-plus-relative tolerances, after a minimum duration. The
 previous velocity field costs 2 or 3 additional double arrays. Periodic population
 mass (including solid storage nodes in the dense backends) must conserve its initial total within the
 specified relative tolerance. Field residuals compare the same post-update state
-that is returned. Mach uses max fluid speed divided by `1/sqrt(3)`; acceptance
+that is returned. Mach uses the maximum fluid velocity magnitude divided by `1/sqrt(3)`; acceptance
 also requires `mach_max<=max_mach` (default .05). Reynolds diagnostic is
 `norm(U)/phi * characteristic_length / nu`; the default length is one lattice
 cell and is not a measured pore scale. Supply a physically meaningful length.

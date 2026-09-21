@@ -2,7 +2,7 @@
 
 Produces the figures shown in the README:
     docs/geometry.png   the binary pore-scale image (solid vs. pore)
-    docs/velocity.png   steady-state speed |u| with flow streamlines
+    docs/velocity.png   steady-state velocity magnitude |u| with flow streamlines
 
     python examples/visualize.py
 """
