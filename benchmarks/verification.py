@@ -156,7 +156,7 @@ def wagner(out, tol):
             m[0] = True                               # one solid layer closes both plates through periodicity
             for collision in (('trt',) if depth == 91 and radius not in (0.40, 0.49) else ('bgk', 'trt')):
                 def cell():
-                    r = solve(m, 0, 1.0, collision, tol)
+                    r = solve(m, 0, 1.0, collision, tol, timeout=14400)   # the 1 um grid needs up to 80000 steps
                     # published k averages over the cell between the plates, not over the wall layer
                     r['k_m2'] = r['k'] * (depth + 1) / depth * (1e-3 / n) ** 2
                     r['k_1e-11_m2'] = r['k_m2'] / 1e-11
