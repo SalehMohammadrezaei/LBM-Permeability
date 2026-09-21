@@ -56,11 +56,13 @@ Principal values 4.04, 4.80, 5.05 darcy; reciprocity error 7.2e-6.
 |---|---|---|---|
 | `cuda` dense, float64 | 53.9 s | 1051 | 23.0 GB GPU |
 | `cuda-sparse`, float64, two arrays (first version) | 9.4 s | 5996 | 6.4 GB GPU |
+| `cuda-sparse`, float64, in place (current) | 11.9 s | 4769 | 4.2 GB GPU |
+| `cuda-sparse`, float32 storage, in place | 12.8 s | 4419 | 3.2 GB GPU |
 | `numba-sparse`, 16 threads | 151 s | 375 | host RAM |
 | `numba-sparse`, 32 threads | 93 s | 606 | host RAM |
 
 One converged load fell from 1972 s to 299 s. CPU figures were taken while 16 unrelated
-processes were running. The in-place version of `cuda-sparse` still needs its own timing row.
+processes were running.
 Float32 deviation storage reproduces float64 permeability to 1.7e-8 on a 48-cube test.
 
 ## Verification ladder
@@ -111,6 +113,11 @@ Micromodel cell of Wagner et al. (2021), k in 1e-11 m^2 (TRT, finest grid run):
 | Sample | Porosity | This code k11 (m^2) | LBM range in Saxena et al. | POREMAPS | Hardware, time |
 |---|---|---|---|---|---|
 | Rock3, Fontainebleau, 2.072 um | 0.0953 | 0.798e-13 | 0.642 to 1.411e-13 | 0.920e-13 | one RTX 6000 Ada, 18.5 GB, 189400 steps, 5.0 h |
+| Sphere pack, 788x791x793, 7 um | 0.3433 | 2.720e-10 | 2.438 to 2.903e-10 | 2.512e-10 | same GPU, 28.4 GB, 28800 steps, 1.2 h (pore Re 0.44; a ten times weaker force is being run as a check) |
+| Rock1, Berea, 2.114 um | 0.184 | 5.079e-13 | 4.569 to 6.889e-13 | 5.772e-13 | `numba-sparse`, 48 CPU threads, 42400 steps, 11.5 h |
+
+All three fall inside the spread of the LBM solvers in Saxena et al. (2017). POREMAPS reports
+36 h on two cluster nodes for its Berea case (mirrored to 2048-cube, so not a like-for-like time).
 
 ## A mistake caught on the way
 
@@ -118,11 +125,10 @@ The first sphere-array pass used one force for every resolution. At 128-cube the
 reached Mach 0.033 and a Reynolds number near 14, so the result was inertial. Those files
 are kept in `verification_superseded_inertial/`; the force now scales with (32/n)^3.
 
-## Running when this was written
+## Running when this was last updated
 
-* Saxena Rock3 (Fontainebleau, 1024-cube, porosity 0.095) on the GPU, TRT, tau 0.6,
-  float32 storage, 24.7 GB. The dense layout would need 326 GB. Sphere pack queued after it.
-* Saxena Rock1 (Berea, 1024-cube, porosity 0.184) on 48 CPU threads, about 1 step per second.
+* Berea Rock1 on the GPU (float32 storage) as a CPU-against-GPU cross-check on a full rock.
+* Sphere pack with a ten times weaker force.
 
 Large runs use tau = 0.6: convergence on rocks is limited by Darcy-scale pressure diffusion,
 whose time grows with viscosity and with the square of the domain size, and TRT makes k
@@ -136,5 +142,5 @@ Saxena et al. (2017): sphere pack 2.438 to 2.903e-10 (POREMAPS 2.512e-10); Berea
 
 1. Add BCC and FCC sphere arrays from Zick and Homsy (1982) Table 2 (needs the paper itself).
 2. Read the reference tables of Saxena et al. (2017) directly; only three samples are quoted second-hand.
-3. Time the in-place `cuda-sparse` and run a CPU thread-scaling series on a quiet machine.
+3. Run a CPU thread-scaling series on a quiet machine.
 4. Name, release tag, Zenodo DOI, then the manuscript.
