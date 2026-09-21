@@ -70,7 +70,7 @@ def main():
     print(f"k_x = {k_mD:.1f} mD  (converged step {res['step_converged']})")
 
     speed = np.sqrt(res["ux"] ** 2 + res["uy"] ** 2 + res["uz"] ** 2)
-    grid["speed"] = to_grid(speed)
+    grid["velocity magnitude"] = to_grid(speed)
     # velocity vectors as (Npts, 3): order must be (vx, vy, vz) = (ux, uy, uz)
     grid["vel"] = np.column_stack([to_grid(res["ux"]),
                                    to_grid(res["uy"]),
@@ -90,7 +90,7 @@ def main():
     p = pv.Plotter(off_screen=True, window_size=(960, 800))
     p.add_mesh(grains, color="#cfcfcf", opacity=0.18, smooth_shading=True)
     if lines.n_points > 0:
-        p.add_mesh(lines.tube(radius=0.35), scalars="speed", cmap="magma",
+        p.add_mesh(lines.tube(radius=0.35), scalars="velocity magnitude", cmap="magma",
                    scalar_bar_args=dict(title="velocity magnitude |u| (LU)",
                                         color="black"))
     p.set_background("white")
