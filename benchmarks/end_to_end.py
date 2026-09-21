@@ -3,10 +3,10 @@ import argparse,os,sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability import geometry
-from lbm_permeability.backends import cp
-from lbm_permeability.io import save_result,write_json,provenance
+from porewise.solver import periodic
+from porewise import geometry
+from porewise.backends import cp
+from porewise.io import save_result,write_json,provenance
 p=argparse.ArgumentParser();p.add_argument('--output',default='results/2026-09-18-pilot/end_to_end');a=p.parse_args()
 out=Path(a.output);out.mkdir(parents=True,exist_ok=True)
 if (out/'summary.json').exists():raise RuntimeError('choose a new output directory; do not overwrite timings')

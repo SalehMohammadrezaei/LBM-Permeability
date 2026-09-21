@@ -131,7 +131,7 @@ cp tests/test*.py /tmp/lbm-installed-check/tests/
 cd /tmp/lbm-installed-check
 env -u PYTHONPATH OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
   /tmp/lbm-installed-cpu/bin/python -m pytest -q tests
-/tmp/lbm-installed-cpu/bin/python -c 'import lbm_permeability; print(lbm_permeability.__file__)'
+/tmp/lbm-installed-cpu/bin/python -c 'import porewise; print(porewise.__file__)'
 ```
 
 The installed module path must be inside `/tmp/lbm-installed-cpu`, not the source
@@ -145,10 +145,10 @@ the built package from a separate directory. From the repository, then `/tmp`:
 .venv/bin/python -m pip install --no-deps --target /tmp/lbm-installed-gpu-release dist/*.whl
 cd /tmp/lbm-installed-check
 PYTHONPATH=/tmp/lbm-installed-gpu-release OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
-  /home/impres/Saleh/lbm-permeability/.venv/bin/python -m pytest -q tests
+  /home/impres/Saleh/porewise/.venv/bin/python -m pytest -q tests
 PYTHONPATH=/tmp/lbm-installed-gpu-release \
-  /home/impres/Saleh/lbm-permeability/.venv/bin/python -c \
-  'import lbm_permeability; print(lbm_permeability.__file__)'
+  /home/impres/Saleh/porewise/.venv/bin/python -c \
+  'import porewise; print(porewise.__file__)'
 ```
 
 Use fresh target directories on repeat to avoid stale installations. The recorded

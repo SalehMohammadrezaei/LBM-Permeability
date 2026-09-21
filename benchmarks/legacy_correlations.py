@@ -5,7 +5,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from validation.cylinder_array import sangani_acrivos_square
 from validation.sphere_array import sangani_acrivos_sc
 from benchmarks.run_cases import generate
-from lbm_permeability.io import write_json
+from porewise.io import write_json
 import numpy as np
 root=Path('results/2026-09-18-pilot/verification');rows=[]
 for kind in ('sphere','cylinder'):

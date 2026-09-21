@@ -1,4 +1,4 @@
-"""Installed CLI: python -m lbm_permeability MASK.npy --dx METRES --output DIR."""
+"""Installed CLI: python -m porewise MASK.npy --dx METRES --output DIR."""
 import argparse
 import sys
 import numpy as np

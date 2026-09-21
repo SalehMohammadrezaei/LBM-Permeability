@@ -2,8 +2,8 @@
 import numpy as np
 import pytest
 
-from lbm_permeability import lbm_stokes_3d, k_from_run, geometry, compute_permeability_tensor
-from lbm_permeability.backends import HAS_GPU
+from porewise import lbm_stokes_3d, k_from_run, geometry, compute_permeability_tensor
+from porewise.backends import HAS_GPU
 
 pytestmark = pytest.mark.skipif(not HAS_GPU, reason='requires actual CUDA')
 
@@ -63,7 +63,7 @@ def test_sparse_tensor_workflow_and_float32_storage():
 
 
 def test_sparse_is_three_dimensional_only():
-    from lbm_permeability import lbm_stokes
+    from porewise import lbm_stokes
     with pytest.raises(ValueError):
         lbm_stokes(geometry.parallel_plates(16, 4, 8), F_x=1e-6, backend='cuda-sparse', verbose=False)
 

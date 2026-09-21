@@ -3,8 +3,8 @@ import sys,json,hashlib,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.io import write_json,save_result
-from lbm_permeability.morphology import local_thickness_distribution
+from porewise.io import write_json,save_result
+from porewise.morphology import local_thickness_distribution
 
 root=Path(sys.argv[1] if len(sys.argv)>1 else 'results/2026-09-18-pilot/dataset')
 p=root/'Seg_Oxyz_0001_0001_0001.raw'

@@ -11,7 +11,7 @@ def git(*args):return subprocess.check_output(['git',*args],cwd=repo,text=True)
 paths=[]
 for name in git('ls-files','-co','--exclude-standard').splitlines():
  p=Path(name)
- if p.parts[0] in ('lbm_permeability','tests','benchmarks','examples','validation','.github') or name in (
+ if p.parts[0] in ('porewise','tests','benchmarks','examples','validation','.github') or name in (
   'README.md','AUDIT.md','CODE_AND_BENCHMARK_HANDOFF.md','pyproject.toml','LICENSE','LICENSE.md',
   'docs/numerical_limits.md','docs/reference_scope.md','docs/benchmark_reproduction.md','docs/gpu_convergence_review.md'):
   paths.append(p)

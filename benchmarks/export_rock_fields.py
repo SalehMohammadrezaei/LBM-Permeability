@@ -3,8 +3,8 @@ import argparse,json,sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability.io import save_result,write_json,provenance
+from porewise.solver import periodic
+from porewise.io import save_result,write_json,provenance
 p=argparse.ArgumentParser();p.add_argument('--output',default='results/2026-09-18-pilot/accepted_128_fields');a=p.parse_args()
 out=Path(a.output)
 if (out/'result.json').exists():raise RuntimeError('choose a new output directory')

@@ -3,10 +3,10 @@ import argparse,hashlib,json,sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability.tensor import assemble_tensor
-from lbm_permeability.io import save_result,write_json,provenance
-from lbm_permeability.backends import cp
+from porewise.solver import periodic
+from porewise.tensor import assemble_tensor
+from porewise.io import save_result,write_json,provenance
+from porewise.backends import cp
 
 
 def main():

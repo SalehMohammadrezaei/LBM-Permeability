@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from lbm_permeability import lbm_stokes,lbm_stokes_2d_fast,lbm_stokes_3d_fast,k_from_run,geometry
-from lbm_permeability.backends import HAS_GPU
+from porewise import lbm_stokes,lbm_stokes_2d_fast,lbm_stokes_3d_fast,k_from_run,geometry
+from porewise.backends import HAS_GPU
 
 
 def test_channel_profile_and_closed_directions():
@@ -32,7 +32,7 @@ def test_direct_fast_wrappers():
 
 
 def test_backend_requests_and_precision(monkeypatch):
-    import lbm_permeability.backends as b
+    import porewise.backends as b
     monkeypatch.setattr(b,'gpu_available',lambda:False)
     assert b.select('auto')[0]=='numpy'
     for backend in ('cuda','cupy-array'):

@@ -2,7 +2,7 @@
 import argparse,hashlib,json,time,sys,urllib.request,urllib.parse
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from lbm_permeability.io import write_json
+from porewise.io import write_json
 BASE='https://web.corral.tacc.utexas.edu/digitalporousmedia'
 IDS={'ct':'38f6b4fe-4a55-4188-ac28-06cf03c0d509','segmentation':'f4d09c8b-9067-4378-868f-f1f6c09394c3',
      'pressure':'b23e5db4-a8bb-4a59-aaa1-8e91bbf21d53','velocity':'4ecb6b63-db08-4e09-8d9c-f21c702e4b9f'}

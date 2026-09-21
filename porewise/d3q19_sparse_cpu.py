@@ -109,7 +109,7 @@ def default_threads():
 class SparseD3Q19CPU:
     def __init__(self, blocked, force, om_p, om_m, precision, threads=None):
         if numba is None:
-            raise RuntimeError("numba-sparse requires numba (pip install 'lbm-permeability[cpu]')")
+            raise RuntimeError("numba-sparse requires numba (pip install 'porewise[cpu]')")
         self.threads = threads or default_threads()
         numba.set_num_threads(min(self.threads, numba.config.NUMBA_NUM_THREADS))
         self.shape = blocked.shape

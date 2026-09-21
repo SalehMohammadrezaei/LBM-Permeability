@@ -12,8 +12,8 @@ an exact profile, not a wall-location error.  These tests assert all of this.
 import numpy as np
 import pytest
 
-from lbm_permeability import lbm_stokes, lbm_stokes_2d_fast, lbm_stokes_3d_fast, k_from_run, geometry
-from lbm_permeability.backends import HAS_GPU
+from porewise import lbm_stokes, lbm_stokes_2d_fast, lbm_stokes_3d_fast, k_from_run, geometry
+from porewise.backends import HAS_GPU
 
 GAP, NY = 8, 16
 K_EXACT = (GAP ** 3 / 12.0 + GAP / 24.0) / NY

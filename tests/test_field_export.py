@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from lbm_permeability.field_export import write_vti
+from porewise.field_export import write_vti
 
 
 def test_vti_noncubic_roundtrip(tmp_path):

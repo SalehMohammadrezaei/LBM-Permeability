@@ -3,8 +3,8 @@ import argparse, json, sys, time
 from pathlib import Path
 import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from lbm_permeability import lbm_stokes_3d
-from lbm_permeability.backends import cp
+from porewise import lbm_stokes_3d
+from porewise.backends import cp
 
 p = argparse.ArgumentParser()
 p.add_argument('--dataset', required=True); p.add_argument('--shape', type=int, nargs=3, default=[500, 500, 500])

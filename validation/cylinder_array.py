@@ -24,7 +24,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lbm_permeability import lbm_stokes, k_from_run, geometry, HAS_GPU
+from porewise import lbm_stokes, k_from_run, geometry, HAS_GPU
 
 
 def sangani_acrivos_square(c: float) -> float:

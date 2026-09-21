@@ -3,10 +3,10 @@ import sys,json,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability.tensor import assemble_tensor
-from lbm_permeability.io import write_json,save_result,provenance
-from lbm_permeability.backends import cp
+from porewise.solver import periodic
+from porewise.tensor import assemble_tensor
+from porewise.io import write_json,save_result,provenance
+from porewise.backends import cp
 
 root=Path('results/2026-09-18-pilot/dataset');out=Path('results/2026-09-18-pilot/rocks');out.mkdir(parents=True,exist_ok=True)
 manifest=json.loads((root/'dataset_manifest.json').read_text());inspection=json.loads((root/'inspection.json').read_text())

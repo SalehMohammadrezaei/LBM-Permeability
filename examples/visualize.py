@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lbm_permeability import (
+from porewise import (
     lbm_stokes, k_from_run, k_lu_to_m2, k_m2_to_millidarcy, geometry, HAS_GPU,
 )
 

@@ -6,11 +6,11 @@ import sys,time,json,os
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.backends import cp
-from lbm_permeability.d3q19_fast import _module
-from lbm_permeability.solver import macros,lattice
-from lbm_permeability.diagnostics import Monitor
-from lbm_permeability.io import write_json,provenance
+from porewise.backends import cp
+from porewise.d3q19_fast import _module
+from porewise.solver import macros,lattice
+from porewise.diagnostics import Monitor
+from porewise.io import write_json,provenance
 root=Path('results/2026-09-18-pilot');m=np.load(root/'dataset/blocked_256.npy');shape=m.shape;n=m.size
 cp.get_default_memory_pool().free_all_blocks()
 bd=cp.asarray(m);solid=bd.astype(cp.uint8);fa=cp.empty((19,)+shape,cp.float64);fb=cp.empty_like(fa)

@@ -10,7 +10,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from lbm_permeability.io import write_json, provenance
+from porewise.io import write_json, provenance
 
 
 def load_mask(job):
@@ -30,8 +30,8 @@ def run(job):
     start = time.perf_counter()
     kind = job['kind']
     if kind == 'solve':
-        from lbm_permeability.solver import periodic
-        from lbm_permeability.field_export import write_vti
+        from porewise.solver import periodic
+        from porewise.field_export import write_vti
         import cupy as cp
         if job['settings']['backend'] != 'numpy':
             cp.get_default_memory_pool().set_limit(size=job['gpu_pool_limit_bytes'])
@@ -84,7 +84,7 @@ def run(job):
                          for i,c in enumerate('zyx')})
         write_json(out/'result.json',r)
     elif kind == 'morphology':
-        from lbm_permeability.morphology import local_thickness_distribution
+        from porewise.morphology import local_thickness_distribution
         r=local_thickness_distribution(mask,job['voxel_size_m'],return_map=True,
                                       max_voxels=mask.size)
         diam=r.pop('diameter_map');np.save(out/'diameter_map.npy',diam)

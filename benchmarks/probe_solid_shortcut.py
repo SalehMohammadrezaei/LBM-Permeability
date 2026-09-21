@@ -7,10 +7,10 @@ import argparse,hashlib,json,sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.backends import cp
-from lbm_permeability.d3q19_fast import _src
-from lbm_permeability.d3q19 import W
-from lbm_permeability.io import write_json,provenance
+from porewise.backends import cp
+from porewise.d3q19_fast import _src
+from porewise.d3q19 import W
+from porewise.io import write_json,provenance
 p=argparse.ArgumentParser();p.add_argument('--kind',choices=['solid','wrap'],default='solid')
 p.add_argument('--output',default='results/2026-09-18-pilot/convergence_review');a=p.parse_args()
 root=Path(a.output);root.mkdir(parents=True,exist_ok=True)

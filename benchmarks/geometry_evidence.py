@@ -3,9 +3,9 @@ import sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from lbm_permeability.solver import periodic
-from lbm_permeability.topology import connectivity_report
-from lbm_permeability.io import save_result,write_json
+from porewise.solver import periodic
+from porewise.topology import connectivity_report
+from porewise.io import save_result,write_json
 root=Path('results/2026-09-18-pilot/geometry');root.mkdir(exist_ok=True);cost=0.
 closed=np.ones((12,16),bool);closed[3:9,4:12]=False
 slab=np.zeros((12,16),bool);slab[:,7:9]=True
