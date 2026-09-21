@@ -25,13 +25,14 @@ for gap, axis in ((8, ax[0]),):
     for col in ('bgk', 'trt'):
         rows = sorted(pick(group='channel', gap=gap, collision=col), key=lambda c: c['tau'])
         if rows:
-            ref = rows[0]['nodal_reference_k_lu']
-            axis.plot([c['tau'] for c in rows], [100 * (c['k_lu'] - ref) / ref for c in rows], **style[col])
-    axis.set(xlabel='relaxation time tau', ylabel='permeability error (%)', title=f'Plane channel, {gap} nodes wide'); axis.legend(); axis.grid(alpha=.3)
+            axis.plot([c['tau'] for c in rows], [100 * c['relative_error'] for c in rows], **style[col])
+    axis.axhline(100 / (2 * gap ** 2), color='0.5', ls=':', lw=1, label='1/(2 gap^2): nodal parabola, midpoint sum')
+    axis.set(xlabel='relaxation time tau', ylabel='error against gap^3/12 (%)', title=f'Plane channel, {gap} nodes wide'); axis.legend(fontsize=7); axis.grid(alpha=.3)
 for col in ('bgk', 'trt'):
     rows = sorted(pick(group='channel', tau=1.0, collision=col), key=lambda c: c['gap'])
     if rows:
         ax[1].loglog([c['gap'] for c in rows], [max(abs(c['relative_error']), 1e-16) for c in rows], **style[col])
+gaps = np.array([4, 8, 16, 32, 64]); ax[1].loglog(gaps, 1 / (2. * gaps ** 2), color='0.5', ls=':', lw=1, label='1/(2 gap^2)')
 ax[1].set(xlabel='channel width (nodes)', ylabel='|error| against gap^3/12', title='Resolution, tau = 1'); ax[1].legend(); ax[1].grid(alpha=.3, which='both')
 fig.tight_layout(); fig.savefig(out / 'channel.png', dpi=160); plt.close(fig)
 lines += ['## Plane channel (exact nodal value (gap^3/12+gap/24)/Ny)', '', '| gap | tau | BGK error | TRT error |', '|---|---|---|---|']
