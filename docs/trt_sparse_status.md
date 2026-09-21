@@ -119,6 +119,10 @@ Micromodel cell of Wagner et al. (2021), k in 1e-11 m^2 (TRT, finest grid run):
 | Rock3, Fontainebleau, 2.072 um | 0.0953 | 0.798e-13 | 0.642 to 1.411e-13 | 0.920e-13 | one RTX 6000 Ada, 18.5 GB, 189400 steps, 5.0 h |
 | Sphere pack, 788x791x793, 7 um | 0.3433 | 2.720e-10 | 2.438 to 2.903e-10 | 2.512e-10 | same GPU, 28.4 GB, 28800 steps, 1.2 h (pore Re 0.44; a ten times weaker force is being run as a check) |
 | Rock1, Berea, 2.114 um | 0.184 | 5.079e-13 | 4.569 to 6.889e-13 | 5.772e-13 | `numba-sparse`, 48 CPU threads, 42400 steps, 11.5 h |
+| Rock1, Berea, same case on the GPU | 0.184 | 5.079e-13 | | | `cuda-sparse`, float32 storage, 45 GB, 42400 steps, 2.1 h |
+
+The Berea run on the CPU (float64 storage) and on the GPU (float32 storage) stopped at the same
+step and agree in k to 9e-8 (0.11365714 and 0.11365713 lu).
 
 All three fall inside the spread of the LBM solvers in Saxena et al. (2017). POREMAPS reports
 36 h on two cluster nodes for its Berea case (mirrored to 2048-cube, so not a like-for-like time).
