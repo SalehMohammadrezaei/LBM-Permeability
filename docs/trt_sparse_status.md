@@ -61,6 +61,10 @@ Principal values 4.04, 4.80, 5.05 darcy; reciprocity error 7.2e-6.
 | `numba-sparse`, 16 threads | 151 s | 375 | host RAM |
 | `numba-sparse`, 32 threads | 93 s | 606 | host RAM |
 
+`numba-sparse` thread scaling on the same crop (MLUPS over all voxels; 16 unrelated
+processes were running): 1 thread 34, 2: 67, 4: 134, 8: 250, 16: 403, 32: 646, 64: 925,
+96: 995. At 96 threads the CPU backend equals the throughput of the original dense GPU path.
+
 One converged load fell from 1972 s to 299 s. CPU figures were taken while 16 unrelated
 processes were running.
 Float32 deviation storage reproduces float64 permeability to 1.7e-8 on a 48-cube test.
@@ -142,5 +146,5 @@ Saxena et al. (2017): sphere pack 2.438 to 2.903e-10 (POREMAPS 2.512e-10); Berea
 
 1. Add BCC and FCC sphere arrays from Zick and Homsy (1982) Table 2 (needs the paper itself).
 2. Read the reference tables of Saxena et al. (2017) directly; only three samples are quoted second-hand.
-3. Run a CPU thread-scaling series on a quiet machine.
+3. Repeat the CPU thread-scaling series on a quiet machine for the paper.
 4. Name, release tag, Zenodo DOI, then the manuscript.
