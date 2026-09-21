@@ -13,7 +13,7 @@ def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('mask_npy',nargs='?')
     p.add_argument('--demo',action='store_true');p.add_argument('--dimension',type=int,choices=[2,3],default=2)
-    p.add_argument('--direction',choices=['x','y','z'],default='x');p.add_argument('--tensor',action='store_true')
+    p.add_argument('--direction',choices=['x','y','z'],default='x');p.add_argument('--tensor',action='store_true');p.add_argument('--mirror',action='store_true',help='with --tensor: solve on the mirrored image (sealed-sample directional permeabilities)')
     p.add_argument('--backend',choices=['auto','numpy','cupy-array','cuda','cuda-sparse','numba-sparse'],default='auto')
     p.add_argument('--no-gpu',action='store_true');p.add_argument('--precision',choices=['float64','float32'],default='float64')
     p.add_argument('--F',type=float,default=1e-6);p.add_argument('--tau',type=float,default=1.)
@@ -38,7 +38,7 @@ def main(argv=None):
                       n_steps_max=a.steps,conv_tol=a.tol,conv_window=a.check_every,
                       wall_timeout_s=a.timeout,return_fields=a.fields,verbose=False)
         if a.tensor:
-            r=compute_permeability_tensor(b,force_magnitude=a.F,voxel_size=a.dx,**settings)
+            r=compute_permeability_tensor(b,force_magnitude=a.F,voxel_size=a.dx,mirror=a.mirror,**settings)
         else:
             j='xyz'.index(a.direction)
             if j>=b.ndim:raise ValueError('direction exceeds mask dimension')

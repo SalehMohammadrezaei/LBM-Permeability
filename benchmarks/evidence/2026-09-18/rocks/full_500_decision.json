@@ -1,9 +1,0 @@
-{
-  "distribution_only_float64_bytes": 38000000000,
-  "free_bytes": 46366715904,
-  "observed_256_allocator_peak_bytes": 7264534528,
-  "extrapolated_peak_bytes": 54125000000.0,
-  "headroom_fraction": 0.2,
-  "attempted": false,
-  "reason": "float64 peak extrapolation exceeds 80% free VRAM; float32 application not qualified"
-}

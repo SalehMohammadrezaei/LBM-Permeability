@@ -1,8 +1,9 @@
 # Verification and performance
 
-Branch `trt-collision` (on GitHub). `main` is unchanged. All numbers below come from
-`results/trt-sparse-20260920/` (stored on D:), produced by the commits on this branch.
-The 18 September campaign is untouched and keeps its own labels.
+Results of the verification ladder and of the rock benchmarks, with the hardware they ran on.
+The result files are archived separately; `docs/benchmark_reproduction.md` gives the commands.
+GPU memory below is the sum of the solver arrays in GB (1e9 bytes) unless marked as allocator
+peak, which is what `nvidia-smi` would show and is given in GiB.
 
 ## What was added
 
@@ -63,20 +64,62 @@ The dense backend could not hold the full image (38 GB); the campaign used a 384
 
 Principal values 4.46, 5.19, 5.39 darcy; porosity 0.2547; reciprocity error 1.1e-6.
 
+## Boundary treatment and voxel resolution on a real rock
+
+A scanned sample is not periodic. Across a periodic wrap most pore voxels face grain, which
+adds resistance; in the wrapped 256-cube run the plane-mean pressure rises through the sample
+and drops by 6 % of F*L across the wrap. `mirror=True` solves on the image reflected along every
+axis (a sealed sample), where pores meet themselves and that jump is absent. Bentheimer, TRT,
+tau = 0.6, x load, permeability in darcy:
+
+| Crop | Periodic wrap | Mirrored along x only | Mirrored in every axis | Wrap against full mirror | Voxels split 2x2x2 (wrap) | Refined against native |
+|---|---|---|---|---|---|---|
+| 128-cube | 2.442 | 4.397 | 2.965 | -17.6 % | 2.104 | -13.9 % |
+| 256-cube | 3.755 | 4.724 | 4.197 | -10.5 % | 3.285 | -12.5 % |
+| 384-cube | 4.102 | 5.028 | 4.657 | -11.9 % | not run | |
+
+Mirroring along the flow axis alone keeps the sideways periodic connections, which are also
+artificial and open extra paths; the fully mirrored value is the one to compare with core-flood
+measurements and with solvers that mirror their domains. Halving the voxel size of the same
+voxel geometry lowers k by about 13 %: at 5 um the throats of this rock are only a few voxels
+wide. The two effects have opposite signs and similar size. Both belong in the uncertainty of
+any number quoted for this rock.
+
+Sealed-sample directional permeabilities of the 384-cube crop (768-cube mirrored domain, 115
+million pore voxels, float32 storage, 25.7 GiB allocator peak, 28, 22 and 23 minutes):
+
+| Direction | Mirrored (darcy) | Wrapped tensor diagonal (darcy) | Difference |
+|---|---|---|---|
+| x | 4.657 | 4.102 | -11.9 % |
+| y | 5.941 | 5.007 | -15.7 % |
+| z | 5.760 | 4.778 | -17.0 % |
+
+In the mirrored domain the off-diagonal response is below 1e-10 of the diagonal, as symmetry
+requires. The full tensor, its principal directions and the anisotropy therefore come from the
+wrapped run, with the bias above. The three 1024-cube benchmark images below were run with the
+periodic wrap (their mirrored domains do not fit one GPU), so they carry a wrap bias of unknown
+but probably smaller size, and the solvers they are compared with used other boundary conditions.
+
 ## Throughput and memory on the same crop (RTX 6000 Ada, Threadripper PRO 7995WX)
 
-| Backend | 1000 steps | MLUPS (all voxels) | Memory |
-|---|---|---|---|
-| `cuda` dense, float64 | 53.9 s | 1051 | 23.0 GB GPU |
-| `cuda-sparse`, float64, two arrays (first version) | 9.4 s | 5996 | 6.4 GB GPU |
-| `cuda-sparse`, float64, in place (current) | 11.9 s | 4769 | 4.2 GB GPU |
-| `cuda-sparse`, float32 storage, in place | 12.8 s | 4419 | 3.2 GB GPU |
-| `numba-sparse`, 16 threads | 151 s | 375 | host RAM |
-| `numba-sparse`, 32 threads | 93 s | 606 | host RAM |
+| Backend | 1000 steps | MLUPS over all voxels | MFLUPS over pore voxels | Memory (allocator peak) |
+|---|---|---|---|---|
+| `cuda` dense, float64 | 53.9 s | 1051 | 267 | 23.0 GiB GPU |
+| `cuda-sparse`, float64, two arrays (first version) | 9.4 s | 5996 | 1524 | 6.4 GiB GPU |
+| `cuda-sparse`, float64, in place (current) | 11.9 s | 4769 | 1212 | 4.2 GiB GPU |
+| `cuda-sparse`, float32 storage, in place | 12.8 s | 4419 | 1123 | 3.2 GiB GPU |
+| `numba-sparse`, 16 threads | 151 s | 375 | 95 | host RAM |
+| `numba-sparse`, 32 threads | 93 s | 606 | 154 | host RAM |
 
 `numba-sparse` thread scaling on the same crop (MLUPS over all voxels; 16 unrelated
 processes were running): 1 thread 34, 2: 67, 4: 134, 8: 250, 16: 403, 32: 646, 64: 925,
 96: 995. At 96 threads the CPU backend equals the throughput of the original dense GPU path.
+
+The dense kernels process solid voxels and use modulo arithmetic per link, so they are a slow
+baseline; the fluid-node rate (MFLUPS) is the figure to compare with other codes. The sparse
+backends need about 180 bytes per pore voxel with float32 storage (allocator peaks: Fontainebleau
+22.6 GiB, sphere pack 37.5 GiB, Berea 43.6 GiB), so a 1024-cube image fits a 48 GB GPU up to a
+porosity of about 0.18.
 
 One converged load fell from 1972 s to 299 s. CPU figures were taken while 16 unrelated
 processes were running.
@@ -93,7 +136,10 @@ Plane channel, 8 nodes wide, error against the exact nodal value:
 | 2.0 | +25.6 % | 0 |
 
 TRT reproduces the analytical parabola at every node for every tau. Its volume average is
-(gap^3/12 + gap/24)/Ny; the gap/24 term is midpoint quadrature of an exact profile.
+(gap^3/12 + gap/24)/Ny: against the continuum value gap^3/12 the permeability is high by
+1/(2 gap^2), 0.78 % at 8 nodes and 3.1 % at 4, from midpoint quadrature of an exact profile.
+The table above is measured against the nodal value; the JSON files store the error against
+the continuum value.
 
 Simple cubic sphere arrays against Zick and Homsy (1982), tau = 1, Reynolds number held
 near 0.02 across resolutions: errors fall from 2 to 5 % at 32-cube to 0.7 to 1.6 % at
@@ -102,7 +148,7 @@ near 0.02 across resolutions: errors fall from 2 to 5 % at 32-cube to 0.7 to 1.6
 The seven drag coefficients are Table 2 of Zick and Homsy (1982); they were cross-checked
 against the same table as quoted in the Basilisk test suite (basilisk.fr/src/test/spheres.c).
 
-Inclined periodic slit, five angles from 0 to 63.4 degrees: the largest in-plane
+Inclined periodic slit (a check of tensor assembly and axis conventions, not of accuracy), five angles from 0 to 63.4 degrees: the largest in-plane
 eigenvector recovers the slit direction to 1e-10 degrees; the minor eigenvalue is 1e-11 of
 the major one; reciprocity error below 1e-11.
 

@@ -33,9 +33,28 @@ def assemble_tensor(loads, voxel_size=1.):
     return out
 
 
-def compute_permeability_tensor(blocked, force_magnitude=1e-6, voxel_size=1., *, backend='auto', **settings):
-    """Run all loads sequentially; invalid columns stay invalid and are never symmetrized away."""
+def mirrored(blocked):
+    """The image followed by its reflection along every axis (2**ndim times the volume).
+
+    An image of a real sample is not periodic: across a periodic wrap most pore voxels face
+    solid, which adds resistance.  In the mirrored domain every pore meets itself across each
+    wrap and each mirror plane is a symmetry plane, which acts as a sealed, free-slip side wall.
+    """
+    out=mask(blocked)
+    for axis in range(out.ndim):
+        out=np.concatenate([out,np.flip(out,axis=axis)],axis=axis)
+    return np.ascontiguousarray(out)
+
+
+def compute_permeability_tensor(blocked, force_magnitude=1e-6, voxel_size=1., *, backend='auto', mirror=False, **settings):
+    """Run all loads sequentially; invalid columns stay invalid and are never symmetrized away.
+
+    mirror=True solves on the mirrored image.  That removes the wrap mismatch of a non-periodic
+    sample, and by symmetry it also removes every off-diagonal response: the result holds the
+    directional permeabilities of a sealed sample.  Use mirror=False for the full tensor.
+    """
     blocked=mask(blocked);spacing(voxel_size)
+    if mirror: blocked=mirrored(blocked)
     if not np.isfinite(force_magnitude) or force_magnitude==0: raise ValueError('force_magnitude must be finite and nonzero')
     started=time.perf_counter();loads=[]
     for j in range(blocked.ndim):
@@ -44,4 +63,6 @@ def compute_permeability_tensor(blocked, force_magnitude=1e-6, voxel_size=1., *,
     out=assemble_tensor(loads,voxel_size)
     out['elapsed_s']=time.perf_counter()-started
     out['execution']='sequential independent rest initializations, all directional solves included'
+    out['boundary']=('mirrored in every axis: sealed-sample directional permeabilities, off-diagonal terms vanish by symmetry'
+                     if mirror else 'periodic wrap of the image as given: full tensor, biased low for non-periodic samples')
     return out

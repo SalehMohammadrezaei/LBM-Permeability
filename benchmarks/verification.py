@@ -151,12 +151,10 @@ def wagner(out, tol):
         n = round(1e-3 / dx)
         y, x = (np.mgrid[0:n, 0:n] + .5) * (1e-3 / n) - .5e-3
         for radius, published in WAGNER.items():
-            if depth == 91 and radius not in (0.40, 0.49):
-                continue
             section = x * x + y * y <= (radius * 1e-3) ** 2
             m = np.broadcast_to(section, (depth + 1, n, n)).copy()
             m[0] = True                               # one solid layer closes both plates through periodicity
-            for collision in ('bgk', 'trt'):
+            for collision in (('trt',) if depth == 91 and radius not in (0.40, 0.49) else ('bgk', 'trt')):
                 def cell():
                     r = solve(m, 0, 1.0, collision, tol)
                     # published k averages over the cell between the plates, not over the wall layer
