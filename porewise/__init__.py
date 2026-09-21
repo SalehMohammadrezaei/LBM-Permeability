@@ -1,8 +1,8 @@
-"""GPU-accelerated lattice-Boltzmann absolute-permeability solver.
+"""PoreWise: permeability of pore-scale images with the lattice Boltzmann method.
 
-Compute the Darcy permeability of a pore-scale binary image by simulating
-single-phase Stokes flow (D2Q9 / D3Q19, BGK, Guo body force) and measuring
-the steady-state superficial velocity.
+Single-phase creeping flow (D2Q9 / D3Q19, BGK or TRT collision, Guo body force) is solved in
+the pore space of a binary image; the steady superficial velocity gives the Darcy permeability
+in one direction or the full tensor.  Backends run on NVIDIA GPUs and on CPU cores.
 """
 from .d2q9 import lbm_stokes, HAS_GPU
 from .d2q9_fast import lbm_stokes_2d_fast

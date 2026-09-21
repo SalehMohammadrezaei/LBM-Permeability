@@ -1,4 +1,4 @@
-# TRT collision and pore-only backends: status, 20 September 2026
+# Verification and performance
 
 Branch `trt-collision` (on GitHub). `main` is unchanged. All numbers below come from
 `results/trt-sparse-20260920/` (stored on D:), produced by the commits on this branch.
