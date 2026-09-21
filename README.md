@@ -1,123 +1,128 @@
-# PoreWise
+<h1 align="center">PoreWise</h1>
 
-**Absolute permeability tensors of 3D pore images, on one GPU or on CPU cores.**
-A lattice-Boltzmann Stokes solver that stores only the pore voxels, uses a
-two-relaxation-time collision so the answer does not depend on the relaxation time,
-and checks every run before it reports a number.
+<p align="center">
+  <a href="https://github.com/SalehMohammadrezaei/PoreWise/actions/workflows/cpu.yml"><img src="https://github.com/SalehMohammadrezaei/PoreWise/actions/workflows/cpu.yml/badge.svg" alt="Tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT licence"></a>
+</p>
 
-![Flow through Bentheimer sandstone](docs/figures/bentheimer_streamlines.png)
+<p align="center">
+  <img src="docs/figures/bentheimer_streamlines.png" width="80%" alt="Flow through Bentheimer sandstone computed with PoreWise">
+</p>
 
-*Bentheimer sandstone (Digital Rocks Portal DRP-29, 256-cube piece, 5 um voxels): grains
-in the back half, streamlines of the computed flow in the front half, coloured by speed.*
+## Overview
 
-## Why another permeability code
+**PoreWise** computes the absolute permeability of porous materials directly from 2D and 3D
+images, such as segmented micro-CT scans of rocks, foams, filters and microfluidic devices.
+It solves creeping flow in the pore space with the lattice Boltzmann method and returns the
+permeability in each direction or the full permeability tensor.
 
-| | |
-|---|---|
-| **Viscosity-independent results** | With BGK and bounce-back the wall position moves with the relaxation time. On Bentheimer sandstone BGK gives 3.27 to 5.11 darcy for tau from 0.6 to 1.5. The TRT collision (magic parameter 3/16) gives 4.1024 darcy at every tau. |
-| **Pore-only storage** | Solid voxels cost no memory and no work. A 1024-cube Fontainebleau image needs 18.5 GB instead of 326 GB and runs on one workstation GPU. |
-| **GPU and CPU, one algorithm** | `cuda-sparse` and `numba-sparse` share the scheme. On a 1024-cube Berea image they stop at the same step and agree in k to 9e-8. |
-| **Full tensor** | Three independent loads give the 3x3 tensor, its symmetric part, principal values and directions, and a reciprocity check. |
-| **Guarded output** | A run is accepted only if it converged and passed mass, density and Mach checks. Rejected runs return no permeability. |
+PoreWise runs on a single GPU or on CPU cores, and is designed so that images of a billion
+voxels fit on one workstation.
 
-## Verification
+Formerly LBM-Permeability.
 
-All numbers are reproduced by `benchmarks/verification.py` and written up in
-[docs/trt_sparse_status.md](docs/trt_sparse_status.md).
+## Capabilities
 
-| Case | Reference | Result |
-|---|---|---|
-| Plane channel, tau 0.55 to 2.0 | analytical | TRT exact at every node for every tau; BGK error -2.3 % to +25.6 % at 8 nodes across |
-| Simple cubic sphere arrays, 7 solid fractions | Zick and Homsy (1982) | 0.7 to 1.6 % at 128-cube; spread over tau: TRT 0.00 %, BGK 8 to 12 % |
-| Inclined slit, 0 to 63.4 degrees | geometry | principal direction recovered to 1e-10 degrees |
-| Circular, square, triangular pipes | analytical | 0.000 % (square) to 0.24 % (circle, 200 voxels across) |
-| Micromodel cell, 5 cylinder radii | Wagner et al. (2021), FEM, SPH, LBM | inside the published band, e.g. 17.3 against 17.4 to 17.7 (1e-11 m^2) |
-| Fontainebleau, 1024-cube | Saxena et al. (2017), range of LBM solvers | 0.798e-13 m^2, range 0.642 to 1.411e-13 |
-| Sphere pack, 788x791x793 | same | 2.72e-10 m^2, range 2.438 to 2.903e-10 |
-| Berea, 1024-cube | same | 5.079e-13 m^2, range 4.569 to 6.889e-13 |
+- **Permeability tensor** of a 3D image (or 2x2 in 2D) from three independent flow directions,
+  with principal values, principal directions and a symmetry check
+- **Two collision models**: BGK, and two-relaxation-time (TRT), which gives a permeability that
+  does not depend on the chosen relaxation time
+- **Pore-only solvers** for GPU (`cuda-sparse`) and CPU (`numba-sparse`): solid voxels take no
+  memory and no computing time
+- **Large images**: a 1024-cube sandstone runs on one 48 GB GPU in a few hours
+- **Quality control**: each run reports convergence, mass conservation, Mach and Reynolds
+  numbers, and returns a permeability only when the checks pass
+- **Output**: JSON results with full settings and provenance, velocity and density fields,
+  VTI export for ParaView
+- **Pore-space tools**: porosity, connectivity report, local-thickness distribution, synthetic
+  test geometries
+- **Command line and Python interfaces**
 
-![BGK against TRT on sphere arrays](docs/figures/spheres.png)
-
-## Speed and memory
-
-Bentheimer 384-cube crop, porosity 0.25, RTX 6000 Ada and Threadripper PRO 7995WX:
-
-| Backend | Million voxel updates per second | Memory |
-|---|---|---|
-| `cuda` (dense, every voxel) | 1051 | 23.0 GB |
-| `cuda-sparse` | 4769 | 4.2 GB |
-| `numba-sparse`, 96 threads | 995 | host RAM |
-| `numba-sparse`, 16 threads | 403 | host RAM |
-
-One converged load on that crop: 5 minutes. The full 500-cube tensor: 12 minutes.
-
-## Install
+## Installation
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install '.[test,morphology]'
-python -m pip install '.[gpu]'     # CUDA workstation, CuPy
-python -m pip install '.[cpu]'     # multi-core CPU backend, numba
-python -m pytest
+git clone https://github.com/SalehMohammadrezaei/PoreWise.git
+cd PoreWise
+python -m venv .venv && source .venv/bin/activate
+pip install .            # core, NumPy reference solvers
+pip install '.[gpu]'     # CuPy, for NVIDIA GPUs (CUDA 12)
+pip install '.[cpu]'     # Numba, for the multi-core CPU solver
+pip install '.[viz]'     # Matplotlib and PyVista, for the examples
 ```
 
-Tested with Python 3.14. The package checks that the GPU really executes; importing
-CuPy is not enough.
+## Quick start
 
-## Use
+From the command line, for a labelled image stored as a NumPy array:
 
 ```bash
-# full tensor of a labelled image, recommended settings
-python -m porewise mask.npy --tensor --backend cuda-sparse --collision trt \
-  --solid-value 255 --pore-value 0 --dx 5e-6 --output results/tensor
-
-# no GPU
-python -m porewise mask.npy --tensor --backend numba-sparse --collision trt \
-  --solid-value 255 --pore-value 0 --dx 5e-6 --output results/tensor_cpu
-
-# small demonstration
-python -m porewise --demo --dimension 2 --backend numpy --dx 2e-6 --output results/demo
+python -m porewise rock.npy --tensor --backend cuda-sparse --collision trt \
+    --solid-value 255 --pore-value 0 --dx 5e-6 --output results/rock
 ```
+
+`--dx` is the voxel size in metres. Use `--backend numba-sparse` on a machine without a GPU.
+Results are written to the output folder as JSON, with the permeability in lattice units and
+in square metres.
+
+From Python:
 
 ```python
 import numpy as np
 from porewise import compute_permeability_tensor
 
-blocked = np.load("mask.npy")            # Boolean, True = solid, axes (z, y, x)
-t = compute_permeability_tensor(blocked, voxel_size=5e-6, backend="cuda-sparse",
-                                collision="trt", tau=0.6)
-print(t["K_m2"], t["principal_values_m2"], t["reciprocity_error"])
+solid = np.load("rock.npy") == 255          # Boolean array, True = solid, axes (z, y, x)
+
+result = compute_permeability_tensor(
+    solid, voxel_size=5e-6, backend="cuda-sparse", collision="trt", tau=0.6
+)
+
+print(result["K_m2"])                       # 3x3 tensor in m^2
+print(result["principal_values_m2"])
 ```
 
-| Backend | Dimension | Notes |
-|---|---|---|
-| `numpy` | 2D, 3D | plain reference, slow |
-| `cupy-array` | 2D, 3D | array reference on the GPU |
-| `cuda` | 2D, 3D | dense CUDA kernels, float32 or float64 storage |
-| `cuda-sparse` | 3D | pore voxels only, half-way bounce-back, in-place streaming, deviation storage |
-| `numba-sparse` | 3D | the same on CPU cores; `NUMBA_NUM_THREADS`, 16 at most by default |
+One flow direction only:
 
-`collision` is `bgk` (default, unchanged from earlier releases) or `trt`. For large rocks
-use TRT with `tau=0.6`: convergence is limited by pressure diffusion, which is slower at
-high viscosity, and TRT makes the result independent of tau.
+```python
+from porewise import lbm_stokes_3d, k_from_run, k_lu_to_m2
 
-## Conventions
+run = lbm_stokes_3d(solid, F_x=1e-6, backend="cuda-sparse", collision="trt", tau=0.6)
+k = k_lu_to_m2(k_from_run(run, "x"), 5e-6)
+```
 
-Masks are Boolean with `True` = solid; image labels must be declared. Arrays are `(y,x)`
-or `(z,y,x)`; vectors and tensor entries are `(x,y,z)`. `K_ij = nu * U_i(load j) / F_j`
-with `nu = (tau - 1/2)/3`, velocity averaged over the whole sample volume, and
-`K_m2 = K_lu * dx**2`. All boundaries are periodic, so a crop is its own boundary-value
-problem, not a refinement of the rock. Flow must stay creeping: check the reported Mach
-and pore Reynolds numbers, and scale the force down when the grid is refined. Details:
-[numerical conventions and limits](docs/numerical_limits.md).
+More in [`examples/`](examples): 2D and 3D runs, a permeability-porosity curve, and flow
+visualisation.
 
-## Data
+## Choosing a solver
 
-Bentheimer: Digital Rocks Portal project DRP-29, doi 10.17612/P7BC78. Benchmark images:
-Saxena et al. (2017), Mendeley Data 4g723tr5v3, CC BY 4.0. Neither is redistributed here;
-`benchmarks/fetch_bentheimer.py` downloads the first.
+| Backend | Images | Runs on | Use it for |
+|---|---|---|---|
+| `cuda-sparse` | 3D | NVIDIA GPU | real samples; fastest and most memory-efficient |
+| `numba-sparse` | 3D | CPU cores | the same method without a GPU; set `NUMBA_NUM_THREADS` |
+| `cuda` | 2D, 3D | NVIDIA GPU | 2D images; dense 3D reference |
+| `numpy`, `cupy-array` | 2D, 3D | CPU, GPU | small cases, teaching, cross-checks |
 
-## License
+We recommend `collision="trt"` with `tau=0.6` for rock images.
 
-MIT. Author: Saleh Rezaee.
+On a 384-cube sandstone crop (porosity 0.25) `cuda-sparse` processes 4,800 million voxels
+per second in 4 GB on an RTX 6000 Ada, and `numba-sparse` reaches 1,000 million on 96 cores.
+
+## Documentation
+
+- [Numerical method, conventions and units](docs/numerical_limits.md)
+- [Verification and performance](docs/verification.md): analytical channels and pipes, sphere
+  arrays, a published micromodel benchmark and published 1024-cube rock benchmarks
+- [Reproducing the benchmarks](docs/benchmark_reproduction.md)
+
+## Citing
+
+If you use PoreWise in your work, please cite it. Citation details are in
+[`CITATION.cff`](CITATION.cff); GitHub shows them under "Cite this repository".
+
+## Contributing
+
+Bug reports, questions and pull requests are welcome through the
+[issue tracker](https://github.com/SalehMohammadrezaei/PoreWise/issues). Please run
+`python -m pytest` before opening a pull request.
+
+## Licence
+
+PoreWise is released under the [MIT licence](LICENSE). Copyright (c) 2026 Saleh Mohammadrezaei.

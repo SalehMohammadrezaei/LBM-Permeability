@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use PoreWise, please cite it using the metadata below."
+type: software
+title: "PoreWise: permeability tensors of pore-scale images with the lattice Boltzmann method on GPU and CPU"
+abstract: >-
+  PoreWise computes the absolute permeability tensor of 2D and 3D binary images of porous
+  materials. It solves creeping single-phase flow with the lattice Boltzmann method (BGK or
+  two-relaxation-time collision) on a single GPU or on CPU cores, storing pore voxels only.
+authors:
+  - given-names: Saleh
+    family-names: Mohammadrezaei
+    email: salehmrezaee@gmail.com
+    affiliation: "The University of Manchester"
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/SalehMohammadrezaei/PoreWise"
+url: "https://github.com/SalehMohammadrezaei/PoreWise"
+keywords:
+  - lattice Boltzmann method
+  - permeability
+  - porous media
+  - digital rock physics
+  - GPU
