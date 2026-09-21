@@ -1,5 +1,5 @@
 {
-  "dataset": "/home/impres/Saleh/lbm-permeability/results/2026-09-18-pilot/dataset/Seg_Oxyz_0001_0001_0001.raw",
+  "dataset": "results/2026-09-18-pilot/dataset/Seg_Oxyz_0001_0001_0001.raw",
   "dataset_sha256": "42bf2c7b771333d1a640afb7b5967b25cd04c78504f9648e457b75749ebe1b2a",
   "dataset_shape": [500,500,500],
   "voxel_size_m": 0.000005,

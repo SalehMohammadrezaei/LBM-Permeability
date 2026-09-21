@@ -27,7 +27,7 @@ env/
 .idea/
 .vscode/
 
-# Local evidence, large outputs and archives; curated records live in benchmarks/evidence.
+# Local evidence, large outputs and archives
 /results/
 /results
 *.npz

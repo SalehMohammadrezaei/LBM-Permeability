@@ -23,6 +23,29 @@ tau: each node carries the analytical parabola, and the volume-averaged permeabi
 is `(h**3/12+h/24)/Ny`, where `h/24` is midpoint quadrature of an exact profile
 (`tests/test_trt.py`). Setting `magic=(tau-1/2)**2` recovers BGK. Sloping and curved voxel surfaces need their own resolution studies.
 
+## Backends and their wall treatment
+
+| Backend | Storage | Wall scheme | Start |
+|---|---|---|---|
+| `numpy`, `cupy-array`, `cuda` | every voxel, two population arrays (array paths: one) | solid-node reflection with a one-step storage delay, as described above | populations `w_q` |
+| `cuda-sparse`, `numba-sparse` (3D) | pore voxels only, one population array streamed in place (AA pattern), an `(18, M)` int32 neighbour table | link-wise half-way bounce-back written into the neighbour table | true rest, raw momentum `-F/2` |
+
+Both wall schemes give the same steady state; `tests/test_sparse.py` compares the velocity
+fields. The sparse backends store `f_q - w_q`. With that storage float32 populations resolve
+weak flow: permeability agrees with float64 storage to 1e-6 in the tests and to 9e-8 on a
+1024-cube Berea image, and the minimum-force guard of the dense float32 path does not apply.
+Collision arithmetic is double precision in every backend.
+
+Half-way bounce-back conserves the staggered momentum `sum((-1)**x_a j_a)` apart from the body
+force, so an impulsive start from `w_q` leaves a velocity that alternates in sign every step and
+does not decay. The sparse backends start on the fixed point of that invariant, which removes
+it. Averaging two consecutive steps is the usual alternative.
+
+Every backend is periodic in all directions. A rock image is not periodic: across the wrap
+most pore voxels face grain, which adds resistance and biases k low, more so for small
+samples. Mirror the image along the flow direction (or in all three) to remove the mismatch,
+and treat the difference between wrapped and mirrored results as part of the uncertainty.
+
 ## Force, averaging, coordinates, units
 
 `F_x,F_y,F_z` are force **per volume**, used directly in the Guo source and as
@@ -72,7 +95,7 @@ can exceed the requested wall limit slightly. `None` disables timeout; zero is i
 Convergence requires three consecutive sampled full-vector AND RMS velocity-field
 changes below absolute-plus-relative tolerances, after a minimum duration. The
 previous velocity field costs 2 or 3 additional double arrays. Periodic population
-mass (including solid storage nodes) must conserve its initial total within the
+mass (including solid storage nodes in the dense backends) must conserve its initial total within the
 specified relative tolerance. Field residuals compare the same post-update state
 that is returned. Mach uses max fluid speed divided by `1/sqrt(3)`; acceptance
 also requires `mach_max<=max_mach` (default .05). Reynolds diagnostic is
