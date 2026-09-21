@@ -64,6 +64,42 @@ The dense backend could not hold the full image (38 GB); the campaign used a 384
 
 Principal values 4.46, 5.19, 5.39 darcy; porosity 0.2547; reciprocity error 1.1e-6.
 
+## Boundary treatment and voxel resolution on a real rock
+
+A scanned sample is not periodic. Across a periodic wrap most pore voxels face grain, which
+adds resistance; in the wrapped 256-cube run the plane-mean pressure rises through the sample
+and drops by 6 % of F*L across the wrap. `mirror=True` solves on the image reflected along every
+axis (a sealed sample), where pores meet themselves and that jump is absent. Bentheimer, TRT,
+tau = 0.6, x load, permeability in darcy:
+
+| Crop | Periodic wrap | Mirrored along x only | Mirrored in every axis | Wrap against full mirror | Voxels split 2x2x2 (wrap) | Refined against native |
+|---|---|---|---|---|---|---|
+| 128-cube | 2.442 | 4.397 | 2.965 | -17.6 % | 2.104 | -13.9 % |
+| 256-cube | 3.755 | 4.724 | 4.197 | -10.5 % | 3.285 | -12.5 % |
+| 384-cube | 4.102 | 5.028 | 4.657 | -11.9 % | not run | |
+
+Mirroring along the flow axis alone keeps the sideways periodic connections, which are also
+artificial and open extra paths; the fully mirrored value is the one to compare with core-flood
+measurements and with solvers that mirror their domains. Halving the voxel size of the same
+voxel geometry lowers k by about 13 %: at 5 um the throats of this rock are only a few voxels
+wide. The two effects have opposite signs and similar size. Both belong in the uncertainty of
+any number quoted for this rock.
+
+Sealed-sample directional permeabilities of the 384-cube crop (768-cube mirrored domain, 115
+million pore voxels, float32 storage, 25.7 GiB allocator peak, 28, 22 and 23 minutes):
+
+| Direction | Mirrored (darcy) | Wrapped tensor diagonal (darcy) | Difference |
+|---|---|---|---|
+| x | 4.657 | 4.102 | -11.9 % |
+| y | 5.941 | 5.007 | -15.7 % |
+| z | 5.760 | 4.778 | -17.0 % |
+
+In the mirrored domain the off-diagonal response is below 1e-10 of the diagonal, as symmetry
+requires. The full tensor, its principal directions and the anisotropy therefore come from the
+wrapped run, with the bias above. The three 1024-cube benchmark images below were run with the
+periodic wrap (their mirrored domains do not fit one GPU), so they carry a wrap bias of unknown
+but probably smaller size, and the solvers they are compared with used other boundary conditions.
+
 ## Throughput and memory on the same crop (RTX 6000 Ada, Threadripper PRO 7995WX)
 
 | Backend | 1000 steps | MLUPS over all voxels | MFLUPS over pore voxels | Memory (allocator peak) |
