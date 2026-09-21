@@ -14,7 +14,7 @@ The 18 September campaign is untouched and keeps its own labels.
 | Campaign exits non-zero when any task fails | `benchmarks/campaign.py` | `tests/test_campaign.py` |
 | Verification ladder and summary | `benchmarks/verification.py`, `plot_verification.py` | results below |
 
-Test suite: 147 passed, 1 skipped.
+Test suite: 148 passed, 1 skipped.
 
 ## A numerical finding worth a paragraph in the paper
 
@@ -49,6 +49,19 @@ TRT tensor at tau = 1 (darcy), rows = response, columns = load:
 ```
 
 Principal values 4.04, 4.80, 5.05 darcy; reciprocity error 7.2e-6.
+
+## Bentheimer, full 500-cube image, TRT, tau = 0.6
+
+The dense backend could not hold the full image (38 GB); the campaign used a 384-cube crop.
+`cuda-sparse` runs all three loads in 12 minutes (9200, 8600 and 8300 steps). Tensor in darcy:
+
+```
+ 4.5273   0.1921   0.1494
+ 0.1922   5.2640   0.0648
+ 0.1494   0.0648   5.2548
+```
+
+Principal values 4.46, 5.19, 5.39 darcy; porosity 0.2547; reciprocity error 1.1e-6.
 
 ## Throughput and memory on the same crop (RTX 6000 Ada, Threadripper PRO 7995WX)
 
@@ -117,7 +130,7 @@ Micromodel cell of Wagner et al. (2021), k in 1e-11 m^2 (TRT, finest grid run):
 | Sample | Porosity | This code k11 (m^2) | LBM range in Saxena et al. | POREMAPS | Hardware, time |
 |---|---|---|---|---|---|
 | Rock3, Fontainebleau, 2.072 um | 0.0953 | 0.798e-13 | 0.642 to 1.411e-13 | 0.920e-13 | one RTX 6000 Ada, 18.5 GB, 189400 steps, 5.0 h |
-| Sphere pack, 788x791x793, 7 um | 0.3433 | 2.720e-10 | 2.438 to 2.903e-10 | 2.512e-10 | same GPU, 28.4 GB, 28800 steps, 1.2 h (pore Re 0.44; a ten times weaker force is being run as a check) |
+| Sphere pack, 788x791x793, 7 um | 0.3433 | 2.720e-10 | 2.438 to 2.903e-10 | 2.512e-10 | same GPU, 28.4 GB, 28800 steps, 1.2 h; a ten times weaker force (pore Re 0.04) gives 2.722e-10, a 0.05 % change |
 | Rock1, Berea, 2.114 um | 0.184 | 5.079e-13 | 4.569 to 6.889e-13 | 5.772e-13 | `numba-sparse`, 48 CPU threads, 42400 steps, 11.5 h |
 | Rock1, Berea, same case on the GPU | 0.184 | 5.079e-13 | | | `cuda-sparse`, float32 storage, 45 GB, 42400 steps, 2.1 h |
 
@@ -133,10 +146,7 @@ The first sphere-array pass used one force for every resolution. At 128-cube the
 reached Mach 0.033 and a Reynolds number near 14, so the result was inertial. Those files
 are kept in `verification_superseded_inertial/`; the force now scales with (32/n)^3.
 
-## Running when this was last updated
-
-* Berea Rock1 on the GPU (float32 storage) as a CPU-against-GPU cross-check on a full rock.
-* Sphere pack with a ten times weaker force.
+## Choice of tau for large runs
 
 Large runs use tau = 0.6: convergence on rocks is limited by Darcy-scale pressure diffusion,
 whose time grows with viscosity and with the square of the domain size, and TRT makes k
