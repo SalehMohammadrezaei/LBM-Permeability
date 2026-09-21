@@ -2,7 +2,7 @@
 
 Produces the 3D figures shown in the README:
     docs/geometry_3d.png   the 3D grain pack (sphere pack)
-    docs/velocity_3d.png   flow streamlines through the pore space, colored by speed
+    docs/velocity_3d.png   flow streamlines through the pore space, colored by velocity magnitude
 
 Requires PyVista for rendering (``pip install pyvista``) in addition to the
 solver's own dependencies.  Off-screen rendering is used, so no display is
