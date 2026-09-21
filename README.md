@@ -25,6 +25,8 @@ Formerly LBM-Permeability.
 
 - **Permeability tensor** of a 3D image (or 2x2 in 2D) from three independent flow directions,
   with principal values, principal directions and a symmetry check
+- **Sealed-sample mode** (`mirror=True`): solves on the mirrored image, which removes the
+  artificial resistance a periodic wrap adds to a non-periodic sample
 - **Two collision models**: BGK, and two-relaxation-time (TRT), which gives a permeability that
   does not depend on the chosen relaxation time
 - **Pore-only solvers** for GPU (`cuda-sparse`) and CPU (`numba-sparse`): solid voxels take no
@@ -78,6 +80,11 @@ result = compute_permeability_tensor(
 print(result["K_m2"])                       # 3x3 tensor in m^2
 print(result["principal_values_m2"])
 ```
+
+A scanned sample is not periodic. Add `mirror=True` (command line: `--mirror`) to get the
+directional permeabilities of the sealed sample, as measured in a core-flood; keep the default
+for the full tensor and its principal directions. See
+[numerical method, conventions and units](docs/numerical_limits.md).
 
 One flow direction only:
 

@@ -33,6 +33,6 @@ __all__ = [
     "HAS_GPU",
 ]
 
-from .tensor import compute_permeability_tensor, assemble_tensor
+from .tensor import compute_permeability_tensor, assemble_tensor, mirrored
 from .validation import decode_mask
-__all__ += ['compute_permeability_tensor', 'assemble_tensor', 'decode_mask']
+__all__ += ['compute_permeability_tensor', 'assemble_tensor', 'mirrored', 'decode_mask']
