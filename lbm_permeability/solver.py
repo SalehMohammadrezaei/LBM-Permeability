@@ -87,7 +87,8 @@ def periodic(blocked, force, *, tau=1., n_steps_max=50000, conv_tol=1e-5,
         return base
     force_scale=float(np.max(np.abs(force)))
     base['force_to_storage_epsilon']=force_scale/np.finfo(precision).eps
-    if force_scale < np.finfo(precision).eps:
+    # sparse backends store f_q-w_q, so the force is not lost against the rest populations
+    if not sparse and force_scale < np.finfo(precision).eps:
         raise ValueError('force is below population storage roundoff; increase it or use float64 (above this guard accuracy still needs verification)')
     c,w,pairs=lattice(ndim)
     opp=list(range(len(w)))
