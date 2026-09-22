@@ -132,7 +132,7 @@ def pipes(out, tol, folder):
             m = np.broadcast_to(~pore, (4,) + pore.shape).copy()      # flow along array axis 0 = component z
             reference = pore.mean() * mean_factor(area, size)
             for collision in ('bgk', 'trt'):
-                run(out, f'pipe_{shape}_{size}_{collision}', reference, lambda: solve(m, 2, 1.0, collision, tol, force_scale=1e-2, timeout=14400),
+                run(out, f'pipe_{shape}_{size}_{collision}', reference, lambda: solve(m, 2, 1.0, collision, tol if size < 800 else 1e-8, force_scale=1e-2, timeout=14400, steps=8000000),
                     group='pipes', shape_name=shape, nominal_size=size, pore_area_voxels=area, collision=collision,
                     reference_source='analytical mean velocity of the cross-section with the voxel-counted area',
                     source='Saxena et al. (2017) Mendeley Data 4g723tr5v3 v2, CC BY 4.0')
