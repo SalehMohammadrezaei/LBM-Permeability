@@ -3,6 +3,7 @@
 <p align="center">
   <a href="https://github.com/SalehMohammadrezaei/PoreWise/actions/workflows/cpu.yml"><img src="https://github.com/SalehMohammadrezaei/PoreWise/actions/workflows/cpu.yml/badge.svg" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT licence"></a>
+  <a href="https://doi.org/10.5281/zenodo.22896540"><img src="https://zenodo.org/badge/1272365975.svg" alt="DOI"></a>
 </p>
 
 <p align="center">
@@ -121,8 +122,25 @@ per second in 4 GB on an RTX 6000 Ada, and `numba-sparse` reaches 1,000 million 
 
 ## Citing
 
-If you use PoreWise in your work, please cite it. Citation details are in
-[`CITATION.cff`](CITATION.cff); GitHub shows them under "Cite this repository".
+If you use PoreWise in your work, please cite the archived release:
+
+> Mohammadrezaei, S. (2026). PoreWise: permeability tensors of pore-scale images with the
+> lattice Boltzmann method on GPU and CPU (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.22896541
+
+```bibtex
+@software{porewise_0_1_0,
+  author  = {Mohammadrezaei, Saleh},
+  title   = {{PoreWise}: permeability tensors of pore-scale images with the lattice {B}oltzmann method on {GPU} and {CPU}},
+  version = {0.1.0},
+  year    = {2026},
+  doi     = {10.5281/zenodo.22896541},
+  url     = {https://github.com/SalehMohammadrezaei/PoreWise}
+}
+```
+
+The concept DOI [10.5281/zenodo.22896540](https://doi.org/10.5281/zenodo.22896540) always
+resolves to the latest release. GitHub also offers "Cite this repository" from
+[`CITATION.cff`](CITATION.cff). A paper describing the software is in preparation.
 
 ## Contributing
 
