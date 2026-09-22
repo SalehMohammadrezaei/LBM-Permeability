@@ -179,7 +179,7 @@ apart, on the exact 1 um grid (91 nodes across the depth), TRT, k in 1e-11 m^2:
 
 Every value lies inside the spread of the published methods. The coarser grids (16 and 32 nodes
 across the depth, cell edges rounded to whole voxels) differ from the exact grid by up to 11 % at
-r = 0.49, where the throat is 10 um wide; that is geometry rounding, not solver error.
+r = 0.49, where the throat is 20 um wide; that is geometry rounding, not solver error.
 
 Every case reported in this document converged and passed the acceptance checks. Cases that
 reached a wall or step limit were rerun with a larger limit; the superseded files are kept

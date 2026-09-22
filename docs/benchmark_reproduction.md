@@ -54,3 +54,12 @@ NUMBA_NUM_THREADS=32 python benchmarks/sparse_speed.py --dataset Seg_Oxyz_0001_0
 ```
 
 Each file reports updates per second over all voxels and over fluid nodes only.
+
+## Regression at a release
+
+```bash
+python benchmarks/regression.py --output results/regression --dataset Seg_Oxyz_0001_0001_0001.raw
+```
+
+Reproduces a channel, a sphere array and the Bentheimer x load, and writes `environment.json`
+with the commit, tag, `pip freeze` and `nvidia-smi`. All three passed on the v0.1.0 candidate.
