@@ -11,8 +11,13 @@ p.add_argument('--verification', required=True); p.add_argument('--rock'); p.add
 a = p.parse_args()
 out = Path(a.output); out.mkdir(parents=True, exist_ok=True)
 cases = [json.loads(f.read_text()) for f in sorted(Path(a.verification).glob('*.json')) if f.name != 'provenance.json']
+rejected = [c for c in cases if not c.get('accepted', True)]
+cases = [c for c in cases if c.get('accepted', True)]
 style = dict(bgk=dict(color='#b3412f', marker='o', label='BGK'), trt=dict(color='#1f5f8b', marker='s', label='TRT, magic 3/16'))
 lines = ['# Verification summary', '']
+lines += [f'{len(cases)} accepted cases; {len(rejected)} not accepted (excluded from every table below).', '']
+if rejected:
+    lines += ['| not accepted | reason | iterations |', '|---|---|---|'] + [f"| {c['name']} | {c['reason']} | {c['iterations']} |" for c in rejected] + ['']
 
 
 def pick(**kw):

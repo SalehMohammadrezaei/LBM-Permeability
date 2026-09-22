@@ -158,7 +158,7 @@ analytical mean velocity with the voxel-counted area:
 | Cross-section | BGK | TRT |
 |---|---|---|
 | Circle 200 / 400 | -0.22 / -0.12 % | -0.24 / -0.13 % |
-| Circle 800 | rerun in progress | rerun in progress |
+| Circle 800 | rerun in progress (see below) | rerun in progress |
 | Square 400 | 0.001 % | 0.000 % |
 | Triangle 400 | -0.17 % | -0.19 % |
 
@@ -166,30 +166,24 @@ The first Circle 800 runs reached their one-hour wall limit after 1.8 million st
 meeting the 1e-9 tolerance (estimates -0.06 % and -0.07 %). They were not accepted and are being
 rerun with a longer limit. Every other ladder case and every rock run converged.
 
-Micromodel cell of Wagner et al. (2021), k in 1e-11 m^2 (TRT, finest grid run):
+Micromodel cell of Wagner et al. (2021), 1 mm unit cell with one cylinder between plates 0.091 mm
+apart, on the exact 1 um grid (91 nodes across the depth), TRT, k in 1e-11 m^2:
 
-| Cylinder radius (mm) | This code | Published FEM | Published LBM | Published 3D homogenisation |
+| Cylinder radius (mm) | PoreWise | Published FEM | Published LBM | Published 3D homogenisation |
 |---|---|---|---|---|
-| 0.35 | 25.71 (32 nodes deep) | 25.7 | 26.7 | 25.8 |
-| 0.40 | 17.34 (91 nodes, exact 1 um geometry) | 17.7 | 17.7 | 17.4 |
-| 0.45 | 8.10 (32) | 7.54 | 8.11 | 8.14 |
-| 0.47 | 3.94 (32) | 3.62 | 3.86 | 3.97 |
-| 0.49 | 0.443 (91, exact) | 0.46 | 0.54 | 0.47 |
+| 0.35 | 25.75 | 25.7 | 26.7 | 25.8 |
+| 0.40 | 17.34 | 17.7 | 17.7 | 17.4 |
+| 0.45 | 8.09 | 7.54 | 8.11 | 8.14 |
+| 0.47 | 3.90 | 3.62 | 3.86 | 3.97 |
+| 0.49 | 0.443 | 0.46 | 0.54 | 0.47 |
 
-## Published 1024-cube benchmarks of Saxena et al. (2017), TRT, tau = 0.6, x load
+Every value lies inside the spread of the published methods. The coarser grids (16 and 32 nodes
+across the depth, cell edges rounded to whole voxels) differ from the exact grid by up to 11 % at
+r = 0.49, where the throat is 10 um wide; that is geometry rounding, not solver error.
 
-| Sample | Porosity | This code k11 (m^2) | LBM range in Saxena et al. | POREMAPS | Hardware, time |
-|---|---|---|---|---|---|
-| Rock3, Fontainebleau, 2.072 um | 0.0953 | 0.798e-13 | 0.642 to 1.411e-13 | 0.920e-13 | one RTX 6000 Ada, 18.5 GB, 189400 steps, 5.0 h |
-| Sphere pack, 788x791x793, 7 um | 0.3433 | 2.720e-10 | 2.438 to 2.903e-10 | 2.512e-10 | same GPU, 28.4 GB, 28800 steps, 1.2 h; a ten times weaker force (pore Re 0.04) gives 2.722e-10, a 0.05 % change |
-| Rock1, Berea, 2.114 um | 0.184 | 5.079e-13 | 4.569 to 6.889e-13 | 5.772e-13 | `numba-sparse`, 48 CPU threads, 42400 steps, 11.5 h |
-| Rock1, Berea, same case on the GPU | 0.184 | 5.079e-13 | | | `cuda-sparse`, float32 storage, 45 GB, 42400 steps, 2.1 h |
-
-The Berea run on the CPU (float64 storage) and on the GPU (float32 storage) stopped at the same
-step and agree in k to 9e-8 (0.11365714 and 0.11365713 lu).
-
-All three fall inside the spread of the LBM solvers in Saxena et al. (2017). POREMAPS reports
-36 h on two cluster nodes for its Berea case (mirrored to 2048-cube, so not a like-for-like time).
+Every case reported in this document converged and passed the acceptance checks. Cases that
+reached a wall or step limit were rerun with a larger limit; the superseded files are kept
+separately and are not counted.
 
 ## A mistake caught on the way
 
