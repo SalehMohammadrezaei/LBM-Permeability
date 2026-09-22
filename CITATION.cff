@@ -13,7 +13,15 @@ authors:
     affiliation: "The University of Manchester"
 version: 0.1.0
 date-released: "2026-09-22"
+doi: 10.5281/zenodo.22896541
 license: MIT
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22896541
+    description: "Version 0.1.0"
+  - type: doi
+    value: 10.5281/zenodo.22896540
+    description: "All versions (concept DOI)"
 repository-code: "https://github.com/SalehMohammadrezaei/PoreWise"
 url: "https://github.com/SalehMohammadrezaei/PoreWise"
 keywords:
