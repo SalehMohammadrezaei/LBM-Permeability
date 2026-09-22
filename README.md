@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/SalehMohammadrezaei/PoreWise/actions/workflows/cpu.yml"><img src="https://github.com/SalehMohammadrezaei/PoreWise/actions/workflows/cpu.yml/badge.svg" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT licence"></a>
-  <a href="https://doi.org/10.5281/zenodo.22896540"><img src="https://zenodo.org/badge/1272365975.svg" alt="DOI"></a>
+  <a href="https://doi.org/10.5281/zenodo.22896541"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.22896541.svg" alt="DOI"></a>
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@ permeability in each direction or the full permeability tensor.
 PoreWise runs on a single GPU or on CPU cores, and is designed so that images of a billion
 voxels fit on one workstation.
 
-Formerly LBM-Permeability.
+Formerly LBM-Permeability. Version 0.1.0 is archived on Zenodo, see Citing below.
 
 ## Capabilities
 
