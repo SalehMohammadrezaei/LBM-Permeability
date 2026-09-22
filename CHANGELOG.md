@@ -26,6 +26,8 @@ one GPU (no MPI or multi-GPU); pore-only backends are 3D only; the 2D pressure-d
 is experimental.
 
 ### Results in the accompanying paper
-The benchmark results were produced by commits `b89d47f` to `8b70ed6` of this repository
-(before the rename); each result file records its own `source_commit`. The numerical kernels
-are unchanged in this release.
+The verification ladder and the rock benchmarks were run between commits `b89d47f` and
+`a2efed9` (before and after the rename); the boundary and refinement study at `067e80a` and
+later. Each result file records its own `source_commit`. The numerical kernels have not changed
+since `8b70ed6`, and a regression at this tag reproduces the headline cases
+(`benchmarks/regression.py`).
